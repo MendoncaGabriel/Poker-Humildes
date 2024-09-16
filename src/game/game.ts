@@ -1,6 +1,6 @@
-import { Player } from "./player";
-import { Table } from "./table";
-import { Cheap } from "./cheap";
+import { Player } from "./entities/player";
+import { Table } from "./entities/table";
+import { Cheap } from "./entities/cheap";
 
 // Criando o baralho e a mesa
 const deck = new Cheap();

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/app.ts",
-    "dev:server": "ts-node-dev --respawn src/server.ts",
+    "dev:server": "ts-node-dev --respawn src/server/server.ts",
+    "dev:game": "tsx watch src/game/game.ts",
     "build": "tsup src --out-dir build",
     "start": "node build/app.js"
   },
