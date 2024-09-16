@@ -1,44 +1,55 @@
-import { Table } from "./table";
 import { Cheap } from "./cheap";
+import { PlayerManager } from "./PlayerManager";
+import { CommunityCardsManager } from "./CommunityCardsManager";
 
 export class Dealer {
-    private cheap: Cheap; // Referência ao baralho
+    private cheap: Cheap;
 
     constructor() {
-        this.cheap = new Cheap();  // Inicializa o baralho (Cheap)
+        this.cheap = new Cheap();
     }
 
-    // Método para distribuir cartas para os jogadores
-    dealToPlayers(table: Table): void {  // Certifique-se de passar a `table` como argumento
-        table.getPlayers().forEach(player => {
-            const card1 = this.cheap.dealCard();  // Pede uma carta ao baralho
+    // Distribui cartas para os jogadores
+    dealToPlayers(playerManager: PlayerManager): void {
+        playerManager.getPlayers().forEach(player => {
+            const card1 = this.cheap.dealCard();
             const card2 = this.cheap.dealCard();
             if (card1 && card2) {
-                player.receiveCards([card1, card2]);  // O Dealer distribui as cartas
+                player.receiveCards([card1, card2]);
             }
         });
     }
 
-    // Método para distribuir as cartas comunitárias na mesa
-    dealCommunityCards(table: Table): void {  // Também precisa receber a `table`
+    // Distribui as cartas comunitárias (Flop, Turn e River)
+    dealCommunityCards(communityCardsManager: CommunityCardsManager): void {
         const flopCards = [this.cheap.dealCard(), this.cheap.dealCard(), this.cheap.dealCard()];
         if (flopCards.every(card => card)) {
-            table.setFlop({ card1: flopCards[0]!, card2: flopCards[1]!, card3: flopCards[2]! });
+            communityCardsManager.setFlop({ card1: flopCards[0]!, card2: flopCards[1]!, card3: flopCards[2]! });
         }
 
+        this.dealTurnCard(communityCardsManager);  // Lida com a carta Turn
+
+        this.dealRiverCard(communityCardsManager);  // Lida com a carta River
+    }
+
+    // Distribui a carta Turn
+    dealTurnCard(communityCardsManager: CommunityCardsManager): void {
         const turnCard = this.cheap.dealCard();
         if (turnCard) {
-            table.setTurn({ card: turnCard });
-        }
-
-        const riverCard = this.cheap.dealCard();
-        if (riverCard) {
-            table.setRiver({ card: riverCard });
+            communityCardsManager.setTurn({ card: turnCard });
         }
     }
 
-    // Reinicializa o baralho através do Cheap
+    // Distribui a carta River
+    dealRiverCard(communityCardsManager: CommunityCardsManager): void {
+        const riverCard = this.cheap.dealCard();
+        if (riverCard) {
+            communityCardsManager.setRiver({ card: riverCard });
+        }
+    }
+
+    // Reinicializa o baralho
     resetDeck(): void {
-        this.cheap = new Cheap();  // Cria um novo baralho
+        this.cheap = new Cheap();
     }
 }

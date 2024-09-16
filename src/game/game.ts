@@ -1,28 +1,35 @@
-import { Table } from './entities/table';
-import { Player } from './entities/player';
+import { Table } from "./entities/table";
+import { PlayerManager } from "./entities/PlayerManager";
+import { CommunityCardsManager } from "./entities/CommunityCardsManager";
+import { Player } from "./entities/player";
+import { GameRound } from "./entities/GameRound";
 
-// Cria uma nova mesa
-const table = new Table("mesa-001");
+function startGame(table: Table, playerManager: PlayerManager, communityCardsManager: CommunityCardsManager): void {
+    const round = new GameRound(playerManager, communityCardsManager);
+    round.start();
+}
 
-// Adiciona jogadores à mesa
-const player1 = new Player({
-    name: "Gabriel",
-    playerId: 123
-});
-const player2 = new Player({
-    name: "Pedro",
-    playerId: 321
-});
+let tables = []
 
+export function bootTables(){
+    let table = new Table("mesa-001");
+    tables.push(table)
+    console.log("Iniciando mesas....")
 
-table.addPlayer({ player: player1 });
-table.addPlayer({ player: player2 });
+    const communityCardsManager = new CommunityCardsManager();
+    const playerManager = new PlayerManager(() => startGame(table, playerManager, communityCardsManager));
+    console.log("Ativando Player manager....")
+}
 
-// O Dealer distribui cartas aos jogadores
-table.dealToPlayers();
+export function addPlayer() {
+    const player = new Player({
+        name: "Gabriel",
+        playerId: 123
+    });
+    playerManager.addPlayer(player);
 
-// O Dealer distribui cartas comunitárias
-table.dealCommunityCards();
+}
+
 
 
 
