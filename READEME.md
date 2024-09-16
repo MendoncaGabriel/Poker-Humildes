@@ -14,6 +14,8 @@ npm install
 
 ## Executar o Projeto
 
+1. docker compose up -d
+
 Para iniciar o projeto em modo de desenvolvimento, utilize o comando:
 
 ```bash
