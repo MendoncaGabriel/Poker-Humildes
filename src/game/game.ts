@@ -1,46 +1,30 @@
-import { Player } from "./entities/player";
-import { Table } from "./entities/table";
-import { Dealer } from "./entities/dealer";
-import { PokerGame } from "./events/pokerStage";
-import { ObservableArray } from "./utils/observableArray";
+import { Table } from './entities/table';
+import { Player } from './entities/player';
 
-// Criando o baralho e a mesa
-const table = new Table(1);
-const dealer = new Dealer(table);
-// Exemplo de uso
-const pokerGame = new PokerGame();
+// Cria uma nova mesa
+const table = new Table("mesa-001");
 
-
-setInterval((
-
-)=>{
-    pokerGame.next()
-
-}, 5000)
+// Adiciona jogadores à mesa
+const player1 = new Player({
+    name: "Gabriel",
+    playerId: 123
+});
+const player2 = new Player({
+    name: "Pedro",
+    playerId: 321
+});
 
 
+table.addPlayer({ player: player1 });
+table.addPlayer({ player: player2 });
 
-export function EnterRomm({name, tableId}: {name: string, tableId: string}){
-    const player = new Player({name, playerId: Number(tableId)});
-    //TODO: verificar se o usuario ja esta na mesa por meio do id, se não criar um novo usuario e inserir ele na mesa
+// O Dealer distribui cartas aos jogadores
+table.dealToPlayers();
 
-    table.addPlayer(player, () => {
-        //TODO: verificar se a lugar a mesa
-        //TODO: verificar se tem mais de um jogador
-        //TODO: agurdar jogadores //20s
-        console.log(table.getPlayers())
-    });
+// O Dealer distribui cartas comunitárias
+table.dealCommunityCards();
 
-    //ag
-    dealer.resetDeck()
-    dealer.dealCommunityCards()
-    dealer.dealToPlayers()
 
-    return {
-        msg1: `Novo player "${name}" entrou a sala`,
-        msg2: `Jogador ${name} foi adicionado a mesa`,
-        // player,
-        mesa: table
-    }
-}
+
+
 
