@@ -26,9 +26,9 @@ export class Player {
         return this.playerId;
     }
 
-    // Adiciona cartas à mão do jogador
-    addCardsToHand({ card1, card2 }: { card1: Card, card2: Card }): void {
-        this.hand = [card1, card2];
+    // Método que permite ao Dealer adicionar cartas à mão do jogador (somente o Dealer chama esse método)
+    receiveCards(cards: Card[]): void {
+        this.hand = cards;
     }
 
     // Adiciona saldo ao jogador

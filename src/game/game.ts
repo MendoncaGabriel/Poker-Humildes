@@ -1,32 +1,24 @@
 import { Player } from "./entities/player";
 import { Table } from "./entities/table";
-import { Cheap } from "./entities/cheap";
+import { Dealer } from "./entities/dealer";
 
 // Criando o baralho e a mesa
-const deck = new Cheap();
-const table = new Table();
+const table = new Table(1);
+const dealer = new Dealer(table);
 
-// Criando dois jogadores
-const player1 = new Player({name: "gabriel", playerId: 1});
-const player2 = new Player({name: "vitoria", playerId: 1});
-console.log("-------------------------")
-console.log(player1)
-console.log(player2)
-console.log("-------------------------")
+export function EnterRomm({name, tableId}: {name: string, tableId: string}){
+    const player = new Player({name, playerId: Number(tableId)});
+    table.addPlayer(player);
 
-// Adicionando os jogadores à mesa
-table.addPlayer(player1);
-table.addPlayer(player2);
+    dealer.resetDeck()
+    dealer.dealCommunityCards()
+    dealer.dealToPlayers()
 
-// Distribuindo cartas para os jogadores
-player1.addCardsToHand({ card1: deck.dealCard()!, card2: deck.dealCard()! });
-player2.addCardsToHand({ card1: deck.dealCard()!, card2: deck.dealCard()! });
+    return {
+        msg1: `Novo player "${name}" entrou a sala`,
+        msg2: `Jogador ${name} foi adicionado a mesa`,
+        // player,
+        mesa: table
+    }
+}
 
-// Exibindo as mãos dos jogadores
-console.log("Mãos dos jogadores:");
-console.log(`Jogador 1: `, player1.getHand());
-console.log(`Jogador 2: `, player2.getHand());
-
-// Exibindo quantas cartas restam no baralho
-console.log("-------------------------")
-console.log("Cartas restantes no baralho:", deck.remainingCards());
