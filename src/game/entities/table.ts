@@ -41,12 +41,16 @@ export class Table {
     getPlayers(): Player[] {
         return this.places
     }
-    addPlayer(player: Player): void {
+    addPlayer(player: Player, callback: ()=> void): void {
         if (this.places.length >= this.maxPlayers) {
             console.log("Esta mesa está cheia.");
             return;
         }
         this.places.push(player);
+
+        setTimeout(() => {
+            callback()
+        }, 1000 * 10);
     }
     removePlayer(playerId: number): void {
         const index = this.places.findIndex(player => player.getId() === playerId);

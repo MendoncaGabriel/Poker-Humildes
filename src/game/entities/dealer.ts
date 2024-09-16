@@ -1,4 +1,3 @@
-import { Card } from "./cheap";
 import { Table } from "./table";
 import { Cheap } from "./cheap";
 
