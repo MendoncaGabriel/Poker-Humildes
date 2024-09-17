@@ -1,18 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>WebSocket Toggle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <button onclick="entrar()">entrar na sala</button>
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+        <h1 class="text-2xl font-bold mb-4">Bem-vindo à página de WebSocket!</h1>
+        <p class="mb-6 text-lg">Hoje é: <%= new Date().toLocaleDateString('pt-BR') %></p>
+
+        <!-- Botão para conectar/desconectar WebSocket -->
+        <button id="toggleBtn"
+            class="px-6 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition">
+            Conectar ao WebSocket
+        </button>
+
+
+
+        <!-- Botão para enviar mensagem -->
+        <button onclick="sendWebSocket()"
+            class="mt-4 px-6 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition">
+            Sentar na mesa
+        </button>
+
+        <!-- Mensagem de status -->
+        <p id="statusMessage" class="mt-4 text-lg text-gray-700"></p>
+    </div>
+
+    <script>
+        let socket = null;
+        const toggleBtn = document.getElementById('toggleBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        let isConnected = false;
+
+        function connectWebSocket() {
+            socket = new WebSocket('ws://localhost:3000/ws');
+
+            socket.addEventListener('open', () => {
+                isConnected = true;
+                statusMessage.textContent = 'Conectado ao WebSocket.';
+                toggleBtn.textContent = 'Desconectar do WebSocket';
+                console.log('WebSocket conectado.');
+            });
+
+            socket.addEventListener('message', (event) => {
+                console.log('Mensagem do servidor: ', event.data);
+                statusMessage.textContent = `Mensagem do servidor: ${event.data}`;
+            });
+
+            socket.addEventListener('close', () => {
+                isConnected = false;
+                statusMessage.textContent = 'Desconectado do WebSocket.';
+                toggleBtn.textContent = 'Conectar ao WebSocket';
+                console.log('WebSocket desconectado.');
+            });
+
+            socket.addEventListener('error', (error) => {
+                console.error('Erro no WebSocket: ', error);
+                statusMessage.textContent = 'Erro ao conectar.';
+            });
+        }
+
+        function disconnectWebSocket() {
+            if (socket) {
+                socket.close();
+                console.log('WebSocket desconectado.');
+            }
+        }
+
+        function sendWebSocket() {
+            if (isConnected && socket.readyState === WebSocket.OPEN) {
+                const message = {
+                    msg: 'sentar player na mesa',
+                    data: {
+                        id: 'id-123',
+                        name: 'gabriel'
+                    }
+                };
+                // Convertendo o objeto para string JSON antes de enviar
+                socket.send(JSON.stringify(message));
+            } else {
+                console.warn('Tentativa de enviar dados enquanto o WebSocket não está conectado.');
+            }
+        }
+        
+        
+
+        toggleBtn.addEventListener('click', () => {
+            if (!isConnected) {
+                connectWebSocket();
+            } else {
+                disconnectWebSocket();
+            }
+        });
+
+
+
+    </script>
+
 </body>
+
 </html>
-<script>
-    async function entrar(){
-        const res = await fetch("/entrar/gabriel/1")
-        const r = await  res.json()
-        console.log(r)
-    }
-</script>
