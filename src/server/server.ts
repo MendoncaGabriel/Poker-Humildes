@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { WebSocketServer } from 'ws';
-import { insertPlayerInTable } from '../game/game';
+import { table } from '../game/game';
 
 const app = express();
 const port = 3000;
@@ -12,6 +12,14 @@ app.use(cors());
 app.set('views', path.resolve('src', 'ui', 'views'));
 app.set('view engine', 'ejs');
 
+// Rotas
+app.get('/', (req: Request, res: Response) => {
+  res.render('index');
+});
+
+// Mapeamento de WebSocket para jogador
+const playerConnections = new Map();
+
 // WebSocket
 const server = app.listen(port, () => {
   console.log(`Servidor HTTP rodando em http://localhost:${port}`);
@@ -20,30 +28,72 @@ const server = app.listen(port, () => {
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
-  console.log('Novo cliente conectado ao WebSocket.');
+  console.log('Novo jogador conectado!');
 
   ws.on('message', async (data) => {
-    const message = JSON.parse(data.toString())
-    console.log(message);
+    const message = JSON.parse(data.toString());
 
+    if (message.msg === "sentar player na mesa") {
+      message.data.state = {
+        sitting: true
+      };
 
-    // Envia a mensagem de volta para o cliente
-    ws.send(`Recebi sua mensagem!`);
+      // Armazenar a conexão e o ID do jogador
+      playerConnections.set(ws, message.data.id);
+
+      table.sitPlayer(message.data);
+
+      // Enviar a atualização para todos os jogadores conectados
+      const updateMessage = JSON.stringify({
+        msg: "exibir players da mesa",
+        chairs: table.chairs
+      });
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === client.OPEN) {
+          client.send(updateMessage);
+        }
+      });
+    } else {
+      // Enviar a mensagem para todos os jogadores conectados
+      const broadcastMessage = JSON.stringify({
+        msg: "mensagem do jogador",
+        data: message
+      });
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === client.OPEN) {
+          client.send(broadcastMessage);
+        }
+      });
+    }
   });
 
   ws.on('close', () => {
-    console.log('Cliente desconectado do WebSocket.');
+    // Encontrar e remover o jogador associado
+    const playerId = playerConnections.get(ws);
+    console.log("antes", table.chairs);
+    if (playerId) {
+      table.kickPlayer(playerId);
+      playerConnections.delete(ws);
+      console.log(`>>> Jogador ${playerId} removido da mesa.`);
+    }
+    console.log("depois", table.chairs);
+
+    // Enviar a atualização para todos os jogadores conectados
+    const updateMessage = JSON.stringify({
+      msg: "exibir players da mesa",
+      chairs: table.chairs
+    });
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === client.OPEN) {
+        client.send(updateMessage);
+      }
+    });
   });
 
   ws.on('error', (error) => {
     console.error('Erro no WebSocket: ', error);
   });
 });
-
-console.log('WebSocket Server inicializado.');
-
-// Rotas
-app.get('/', (req: Request, res: Response) => {
-  res.render('index');
-});
-
