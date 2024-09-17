@@ -15,14 +15,21 @@ export class DeckCard {
     constructor(
         public cards: Card[] = []
     ) {
-        this.init()
+        this.create()
     }
 
     shuffle(){
         this.cards = shuffleArray(this.cards)
     }
 
-    init() {
+    removeFirst() {
+        this.cards.shift()
+    }
+    removeLast(){
+        this.cards.pop()
+    }
+
+    create() {
         for (let i = 0; i < 13; i++) {
             const hearts: Card = { naipe: "Hearts", value: i }     //copas
             const spades: Card = { naipe: "Spades", value: i }     //espadas
