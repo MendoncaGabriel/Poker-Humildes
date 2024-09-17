@@ -1,6 +1,5 @@
 import { Card } from "./cards";
 
-
 interface Hand {
     fistCard: Card;
     secoundCard: Card;
@@ -27,9 +26,9 @@ export class Player {
     public name: string;
     private wallet: number;
     private betPot: number;
-    private hand?: Hand;
-    private state: PlayerStates;
-    private actions: PlayerAction[]; 
+    public hand?: Hand;
+    public state: PlayerStates;
+    public actions: PlayerAction[]; 
 
     constructor({id, name, wallet = 0, betPot = 0, hand, state = {}, actions = []}: {
         id: string,

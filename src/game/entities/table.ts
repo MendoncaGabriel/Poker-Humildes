@@ -1,3 +1,4 @@
+import { Card } from "./cards";
 import { Player } from "./player";
 
 export class Table {
@@ -6,15 +7,31 @@ export class Table {
     private maxPlayers: number
     private pot: number
     private lockedTable: boolean
-    private chairs: Player[] = []
+    public chairs: Player[] = []
+    public flop: Card[]
+    public turn: Card
+    public river: Card
 
     constructor({minBet}: {minBet: number}) { 
+        this.flop = []
+        this.turn = {naipe: "", value: 1}
+        this.river = {naipe: "", value: 1}
         this.pot = 0
-        this.chairs = [],
+        this.chairs = []
         this.minBet = minBet
         this.minPlayers = 2
         this.maxPlayers = 7
         this.lockedTable = false
+    }
+
+    setFlop(cards: Card[]){
+        this.flop = cards
+    }
+    setTurn(card: Card){
+        this.turn = card
+    }
+    setRiver(card: Card){
+        this.river = card
     }
 
     setMinBet(value: number){
@@ -25,11 +42,11 @@ export class Table {
 
     sitPlayer(player: Player): { msg: string } {
         if (this.lockedTable) {
-            return { msg: "Mesa fechada" };
+            throw new Error("Mesa fechada")
         }
         
         if (this.chairs.length >= this.maxPlayers) {
-            return { msg: "Mesa cheia" };
+            throw new Error ("Mesa cheia");
         }
 
         this.chairs.push(player);
