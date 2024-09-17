@@ -1,7 +1,5 @@
-interface Card {
-    value: number;
-    naipe: string;
-}
+import { Card } from "./cards";
+
 
 interface Hand {
     fistCard: Card;
