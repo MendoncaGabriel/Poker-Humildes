@@ -1,113 +1,85 @@
-import { Card } from "./cheap";
+interface Card {
+    value: number;
+    naipe: string;
+}
 
-interface PlayerConfig {
-    name: string;
-    playerId: number;
+interface Hand {
+    fistCard: Card;
+    secoundCard: Card;
+}
+
+interface PlayerStates {
+    myTurn?: boolean;  // minha vez
+    sitting?: boolean; // sentado
+    toGiveUp?: boolean; // desistiu
+}
+
+enum PlayerAction {
+    BET = 'bet',
+    CALL = 'call',
+    RAISE = 'raise',
+    FOLD = 'fold',
+    CHECK = 'check',
+    ALL_IN = 'all_in',
+    RE_RAISE = 're_raise'
 }
 
 export class Player {
-    private hand: Card[] = [];
-    private bet: number = 0;
-    private balance: number = 0;
-    private folded: boolean = false;  // Flag para verificar se o jogador desistiu
-
-    constructor(config: PlayerConfig) {
-        this.name = config.name;
-        this.playerId = config.playerId;
-    }
-
-    // Propriedade para o nome do jogador
+    public id: string;
     public name: string;
+    private wallet: number;
+    private betPot: number;
+    private hand?: Hand;
+    private state: PlayerStates;
+    private actions: PlayerAction[]; 
 
-    // Propriedade para o ID do jogador
-    private readonly playerId: number;
-
-    // Retorna o ID do jogador
-    getId(): number {
-        return this.playerId;
+    constructor({id, name, wallet = 0, betPot = 0, hand, state = {}, actions = []}: {
+        id: string,
+        name: string,
+        wallet?: number,
+        betPot?: number,
+        hand?: Hand,
+        state?: PlayerStates,
+        actions?: PlayerAction[]
+    }) {
+        this.id = id;
+        this.name = name;
+        this.wallet = wallet;
+        this.betPot = betPot;
+        this.hand = hand;
+        this.state = state;
+        this.actions = actions;
     }
 
-    getName(): string {
-        return this.name
+    getWallet(): number {
+        return this.wallet;
     }
 
-    // Método que permite ao Dealer adicionar cartas à mão do jogador (somente o Dealer chama esse método)
-    receiveCards(cards: Card[]): void {
-        this.hand = cards;
+    setWallet(value: number): void {
+        this.wallet = value;
     }
 
-    // Adiciona saldo ao jogador
-    addBalance(value: number): void {
-        if (value < 0) {
-            console.log("O valor a ser adicionado deve ser positivo.");
-            return;
-        }
-        this.balance += value;
+    getBetPot(): number {
+        return this.betPot;
     }
 
-    // Limpa a mão do jogador
-    clearHand(): void {
-        this.hand = [];
-        this.folded = false;  // Reseta a desistência ao limpar a mão
+    setBetPot(value: number): void {
+        this.betPot = value;
     }
 
-    // Define a aposta do jogador
-    setBet(value: number): void {
-        if (value > this.balance) {
-            console.log("Saldo insuficiente.");
-            return;
-        }
-        this.balance -= value;
-        this.bet = value;
+    setHand({ fistCard, secoundCard }: Hand): void {
+        this.hand = { fistCard, secoundCard };
     }
 
-    // Retorna a mão do jogador
-    getHand(): Card[] {
-        return this.hand;
+    setState(state: PlayerStates): void {
+        this.state = { ...this.state, ...state }; 
     }
 
-    // Retorna o saldo do jogador
-    getBalance(): number {
-        return this.balance;
+    setAction(action: PlayerAction): void {
+        this.actions.push(action); 
     }
 
-    // Retorna a aposta do jogador
-    getBet(): number {
-        return this.bet;
-    }
-
-    // Método para aumentar a aposta
-    raiseBet(amount: number): number {
-        if (amount > this.balance) {
-            console.log("Saldo insuficiente para aumentar a aposta.");
-            return 0;
-        }
-        this.balance -= amount;
-        this.bet += amount;
-        console.log(`${this.name} aumentou a aposta em ${amount}.`);
-        return amount;  // Retorna o valor de aumento
-    }
-
-    // Método para igualar a aposta
-    placeBet(value: number): void {
-        if (value > this.balance) {
-            console.log("Saldo insuficiente para igualar a aposta.");
-            return;
-        }
-        this.balance -= value;
-        this.bet = value;  // Atualiza a aposta para o valor igualado
-        console.log(`${this.name} igualou a aposta de ${value}.`);
-    }
-
-    // Método para desistir
-    fold(): void {
-        this.folded = true;
-        this.clearHand();  // Limpa a mão ao desistir
-        console.log(`${this.name} desistiu da rodada.`);
-    }
-
-    // Verifica se o jogador desistiu
-    hasFolded(): boolean {
-        return this.folded;
+    resetActions(): void {
+        this.actions = [];
     }
 }
