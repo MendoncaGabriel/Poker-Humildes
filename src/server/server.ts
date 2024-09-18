@@ -11,6 +11,8 @@ const port = 3000;
 app.use(cors());
 app.set('views', path.resolve('src', 'ui', 'views'));
 app.set('view engine', 'ejs');
+// Configurar pasta estática
+app.use(express.static(path.join(__dirname, '../ui/public')));
 
 // Rotas
 app.get('/', (req: Request, res: Response) => {
@@ -28,10 +30,10 @@ const server = app.listen(port, () => {
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
-  console.log('Novo jogador conectado!');
-
+  
   ws.on('message', async (data) => {
     const message = JSON.parse(data.toString());
+    console.log(`>>> Novo jogador ${message.data.name} conectado!`);
 
     if (message.msg === "sentar player na mesa") {
       message.data.state = {
@@ -72,13 +74,11 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     // Encontrar e remover o jogador associado
     const playerId = playerConnections.get(ws);
-    console.log("antes", table.chairs);
     if (playerId) {
       table.kickPlayer(playerId);
       playerConnections.delete(ws);
       console.log(`>>> Jogador ${playerId} removido da mesa.`);
     }
-    console.log("depois", table.chairs);
 
     // Enviar a atualização para todos os jogadores conectados
     const updateMessage = JSON.stringify({
@@ -94,6 +94,6 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('error', (error) => {
-    console.error('Erro no WebSocket: ', error);
+    console.error('>>> Erro no WebSocket: ', error);
   });
 });
