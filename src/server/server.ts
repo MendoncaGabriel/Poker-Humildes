@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { WebSocketServer } from 'ws';
 import { table } from '../game/game';
+import { GameManager, playerConnections } from '../game/gameMaganer';
 
 const app = express();
 const port = 3000;
@@ -19,8 +20,7 @@ app.get('/', (req: Request, res: Response) => {
   res.render('index');
 });
 
-// Mapeamento de WebSocket para jogador
-const playerConnections = new Map();
+
 
 // WebSocket
 const server = app.listen(port, () => {
@@ -30,70 +30,21 @@ const server = app.listen(port, () => {
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
-  
+  const gameManager = new GameManager({ ws, wss });
+
   ws.on('message', async (data) => {
     const message = JSON.parse(data.toString());
-    console.log(`>>> Novo jogador ${message.data.name} conectado!`);
-
-    if (message.msg === "sentar player na mesa") {
-      message.data.state = {
-        sitting: true
-      };
-
-      // Armazenar a conexão e o ID do jogador
-      playerConnections.set(ws, message.data.id);
-
-      table.sitPlayer(message.data);
-
-      // Enviar a atualização para todos os jogadores conectados
-      const updateMessage = JSON.stringify({
-        msg: "exibir players da mesa",
-        chairs: table.chairs
-      });
-
-      wss.clients.forEach((client) => {
-        if (client.readyState === client.OPEN) {
-          client.send(updateMessage);
-        }
-      });
-    } else {
-      // Enviar a mensagem para todos os jogadores conectados
-      const broadcastMessage = JSON.stringify({
-        msg: "mensagem do jogador",
-        data: message
-      });
-
-      wss.clients.forEach((client) => {
-        if (client.readyState === client.OPEN) {
-          client.send(broadcastMessage);
-        }
-      });
-    }
+    gameManager.send(message)
   });
 
   ws.on('close', () => {
-    // Encontrar e remover o jogador associado
-    const playerId = playerConnections.get(ws);
-    if (playerId) {
-      table.kickPlayer(playerId);
-      playerConnections.delete(ws);
-      console.log(`>>> Jogador ${playerId} removido da mesa.`);
-    }
-
-    // Enviar a atualização para todos os jogadores conectados
-    const updateMessage = JSON.stringify({
-      msg: "exibir players da mesa",
-      chairs: table.chairs
-    });
-
-    wss.clients.forEach((client) => {
-      if (client.readyState === client.OPEN) {
-        client.send(updateMessage);
-      }
-    });
+    gameManager.send({
+      msg: "remover player",
+    })
   });
 
   ws.on('error', (error) => {
     console.error('>>> Erro no WebSocket: ', error);
   });
+
 });
