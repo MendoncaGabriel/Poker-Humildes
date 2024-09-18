@@ -30,7 +30,12 @@ const server = app.listen(port, () => {
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
+  console.log(">>> novo jogador conectado!")
+
   const gameManager = new GameManager({ ws, wss });
+  gameManager.send({
+    msg: "novo jogador conectado"
+  })
 
   ws.on('message', async (data) => {
     const message = JSON.parse(data.toString());

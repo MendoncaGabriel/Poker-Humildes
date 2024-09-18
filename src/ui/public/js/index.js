@@ -50,6 +50,10 @@ function connectWebSocket() {
         if (mensagem.msg == "exibir players da mesa") {
             showPlayersInTable(mensagem.chairs)
         }
+
+        if(mensagem.msg == "Mesa cheia" || mensagem.msg == "Mesa fechada"){
+            alert(mensagem.msg)
+        }
     });
 
     socket.addEventListener('close', () => {

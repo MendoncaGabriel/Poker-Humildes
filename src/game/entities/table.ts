@@ -1,6 +1,9 @@
 import { Card } from "./cards";
 import { Player } from "./player";
 
+type StateTable = "running" | "waitingForPlayers";
+
+
 export class Table {
     private minBet: number
     private minPlayers: number
@@ -11,6 +14,7 @@ export class Table {
     public flop: Card[]
     public turn: Card
     public river: Card
+    public state: StateTable
 
     constructor({minBet}: {minBet: number}) { 
         this.flop = []
@@ -22,6 +26,10 @@ export class Table {
         this.minPlayers = 2
         this.maxPlayers = 7
         this.lockedTable = false
+        this.state = "waitingForPlayers"
+    }
+    setState(state: StateTable){
+        this.state = state
     }
 
     setFlop(cards: Card[]){
@@ -40,7 +48,7 @@ export class Table {
         }
     }
 
-    sitPlayer(player: Player): { msg: string } {
+    sitPlayer(player: Player) {
         if (this.lockedTable) {
             throw new Error("Mesa fechada")
         }

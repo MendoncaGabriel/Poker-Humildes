@@ -23,6 +23,17 @@ export class GameManager {
   }
 
   send(message: any): void {
+    if(message.msg == "novo jogador conectado"){
+      /*
+        leva um tempo para o jogador sentar a mesa
+        e preciso aguardar um tempo antes de começar
+      */
+      let delayToStart = 1000
+      setTimeout(() => {
+        handleStartGame()
+      }, delayToStart);
+    }
+
     if (message.msg === "remover player") {
       removePlayer({
         ws: this.ws,
@@ -40,6 +51,23 @@ export class GameManager {
   }
 }
 
+function handleStartGame(){
+  
+
+  /*
+    verificar status da mesa, 
+    a mesa so troca o stado para "running" quando estiver com o estado "waitingForPlayers",
+    a mesa so troca para "running" quando tiver pelo menos dois players
+  */
+    
+  if(table.state == "waitingForPlayers" && table.chairs.length >= 2){
+    table.setState("running")
+    console.log(">>> Estado da mesa mudou para: ", table.state)
+  }
+  
+
+}
+
 function sitPlayer({ data, ws, broadcast }: { data: any, ws: WebSocket, broadcast: any }) {
   data.state = {
     sitting: true
@@ -47,14 +75,26 @@ function sitPlayer({ data, ws, broadcast }: { data: any, ws: WebSocket, broadcas
 
   playerConnections.set(ws, data.id);
 
-  table.sitPlayer(data);
+  try {
+    table.sitPlayer(data);
+    
+    const updateMessage = {
+      msg: "exibir players da mesa",
+      chairs: table.chairs
+    };
+    broadcast(updateMessage);
+  } catch (error) {
+    if (error instanceof Error) {
+      broadcast({
+        msg: error.message
+      });
+    } else {
+      broadcast("Ocorreu um erro desconhecido");
+    }
+  }
+  
 
-  const updateMessage = {
-    msg: "exibir players da mesa",
-    chairs: table.chairs
-  };
 
-  broadcast(updateMessage);
 }
 
 function removePlayer({ ws, broadcast }: { ws: WebSocket, broadcast: any }) {
