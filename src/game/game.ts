@@ -7,13 +7,10 @@ export const table = new Table({
     minBet: 0
 })
 
-
-
-
-// Criando um baralho
+// Criando um baralho para o dealer
 const cards = new DeckCard()
 
-// Contratando um dealer para a mesa (aqui precisamos dar um baralho para ele trabalhar)
+// Criar um dealer para a mesa e da a ela um baralho
 const dealer = new Dealer(cards, table)
 
 // Sortear flop
