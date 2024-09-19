@@ -17,6 +17,16 @@
 
         </div>
 
+        <h2>AÇÕES</h2>
+        <div class="border-2 flex p-2 w-full justify-between ">
+            <button onclick="actionPlayer('bet', 10)" class="px-4 py-2 border rounded-md bg-green-500 font-bold text-white">bet</button>
+            <button onclick="actionPlayer('call', 10)" class="px-4 py-2 border rounded-md bg-blue-500 font-bold text-white">call</button>
+            <button onclick="actionPlayer('raise', 20)" class="px-4 py-2 border rounded-md bg-purple-500 font-bold text-white">raise</button>
+            <button onclick="actionPlayer('fold', 0)" class="px-4 py-2 border rounded-md bg-red-500 font-bold text-white">fold</button>
+            <button onclick="actionPlayer('check', 0)" class="px-4 py-2 border rounded-md bg-gray-500 font-bold text-white">check</button>
+            <button onclick="actionPlayer('all_in', 10)" class="px-4 py-2 border rounded-md bg-yellow-500 font-bold text-white">all in</button>
+        </div> <br>
+
         <button id="btnSentarAMesa" class="px-6 py-2 bg-blue-500 text-white font-semibold rounded transition ">
             Sentar na mesa 1
         </button>

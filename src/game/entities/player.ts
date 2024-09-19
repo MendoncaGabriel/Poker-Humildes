@@ -30,7 +30,7 @@ export class Player {
     public state: PlayerStates;
     public actions: PlayerAction[]; 
 
-    constructor({id, name, wallet = 0, betPot = 0, hand, state = {}, actions = []}: {
+    constructor({id, name, wallet = 100, betPot = 0, hand, state = {}, actions = []}: {
         id: string,
         name: string,
         wallet?: number,

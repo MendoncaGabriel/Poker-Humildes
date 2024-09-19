@@ -5,7 +5,7 @@ type StateTable = "running" | "waitingForPlayers";
 
 
 export class Table {
-    private minBet: number
+    public minBet: number
     private minPlayers: number
     private maxPlayers: number
     private pot: number

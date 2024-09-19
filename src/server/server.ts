@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { WebSocketServer } from 'ws';
 import { table } from '../game/game';
-import { GameManager, playerConnections } from '../game/gameMaganer';
+import { SocketMaganer, playerConnections } from '../game/socketMaganer';
 
 const app = express();
 const port = 3000;
@@ -21,7 +21,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 
-
 // WebSocket
 const server = app.listen(port, () => {
   console.log(`Servidor HTTP rodando em http://localhost:${port}`);
@@ -30,20 +29,19 @@ const server = app.listen(port, () => {
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
-  console.log(">>> novo jogador conectado!")
 
-  const gameManager = new GameManager({ ws, wss });
-  gameManager.send({
+  const socketMaganer = new SocketMaganer({ ws, wss });
+  socketMaganer.send({
     msg: "novo jogador conectado"
   })
 
   ws.on('message', async (data) => {
     const message = JSON.parse(data.toString());
-    gameManager.send(message)
+    socketMaganer.send(message)
   });
 
   ws.on('close', () => {
-    gameManager.send({
+    socketMaganer.send({
       msg: "remover player",
     })
   });

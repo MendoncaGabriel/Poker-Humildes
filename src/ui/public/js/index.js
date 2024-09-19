@@ -31,6 +31,13 @@ function showPlayersInTable(chairs) {
     })
 }
 
+function actionPlayer(action, value){
+    send({
+        msg: action,
+        data: value
+    })
+}
+
 function connectWebSocket() {
     socket = new WebSocket('ws://localhost:3000/ws');
 

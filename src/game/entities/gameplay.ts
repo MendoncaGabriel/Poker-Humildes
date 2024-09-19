@@ -1,22 +1,31 @@
-export function handleEvent(event: string): void {
+import { table } from "../game";
+import { DealCards } from "../gameplay/dealCards";
+import { FirstRoundOfPosts } from "../gameplay/firstRoundOfPosts";
+import { StartGame } from "../gameplay/startGame";
+
+type StateGameplay = "start game" | "init bet" | "distribute cards";
+const startGame = new StartGame(table)
+const firstRoundOfPosts = new FirstRoundOfPosts(table)
+const dealCards = new DealCards(table)
+
+export function handleEventGameplay({ event, broadcast }: { event: StateGameplay, broadcast: any }): void {
+
     switch (event) {
         case "start game":
-            console.log("Iniciando uma partida...");
-            console.log("Verificando jogadores sentados à mesa...");
-            console.log("Travando a mesa para entrada de novos jogadores...");
+            startGame.execute(broadcast)
             break;
-
+            
         case "init bet":
-            console.log("Iniciando rodada de apostas iniciais...");
+            firstRoundOfPosts.execute()
             break;
 
         case "distribute cards":
-            console.log("Distribuindo cartas da mesa (flop, turn, river)...");
-            console.log("Distribuindo cartas para os jogadores sentados à mesa...");
+            dealCards.execute()
             break;
 
         default:
-            console.log("Evento não reconhecido.");
+            console.log(">>> gameplay: Evento não reconhecido.");
             break;
     }
+
 }
