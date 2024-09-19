@@ -39,7 +39,6 @@ export class GameplayManager {
         }
     }
     
-
     private getTableByRoomId(roomId: string): Table {
         const room = game.getRoomById(roomId);
         if (!room) throw new Error(`Sala com ID ${roomId} não encontrada.`);
@@ -68,24 +67,58 @@ export class GameplayManager {
         }
     }
     
-
     private handleStartPlay({ table }: { table: Table }) {
+        console.log(`>>> 🎲 gameplay: ${table.chairs.length} jogadores estão na mesa.`);
+
+        
         if (table.chairs.length == 2) {
-            table.dealer.shuffleCards();
-    
-            console.log(`>>> 🎲 gameplay: ${table.chairs.length} jogadores estão na mesa.`);
             const smallBlind = table.minBet;
             const bigBlind = smallBlind * 2;
+
+            table.dealer.shuffleCards();
     
             const playerSmallBlind = table.chairs[0]; 
+            playerSmallBlind.setState({ myTurn: false })
+            
             const playerBigBlind = table.chairs[1];
+            playerBigBlind.setState({ myTurn: true }) //primeiro a apostar apost o pre flop
     
             playerSmallBlind.setBetPot(smallBlind);
             playerBigBlind.setBetPot(bigBlind);
+
             table.dealer.sortCardsFlop();
-            table.dealer.sortCardTurn();
-            table.dealer.sortCardRiver();
+            // table.dealer.sortCardTurn();
+            // table.dealer.sortCardRiver();
             table.dealer.distributeCardsToPlayers();
+
+            this.socketManager.sendToAll("show flop")
+            //iniciar rodada e apostas
+            // - adicionar logica para aposta
+            // - adicionar timer de aposta
+            // - adicionar logica para passar a vez de aposta
+            // - adiconar logica para girar a mesa
+            // - adicionar logica para mover o pot do player para o pot da mesa
+  
+        }else if(table.chairs.length > 2){
+            table.dealer.shuffleCards();
+
+            const smallBlind = table.minBet;
+            const bigBlind = smallBlind * 2;
+
+            const playerSmallBlind = table.chairs[0]; 
+            playerSmallBlind.setState({ myTurn: false })
+            
+            const playerBigBlind = table.chairs[1];
+            playerBigBlind.setState({ myTurn: true })
+
+            table.dealer.sortCardsFlop();
+
+            table.dealer.distributeCardsToPlayers();
+
+            // jogador ao lado do big bling tem a vez para apostar
+
+            //depois que todos apostarem pode mostrar o flop
+            //this.socketManager.sendToAll("show flop")
         }
     }
     
@@ -122,9 +155,6 @@ export class GameplayManager {
             this.socketManager.sendToAll({ msg: errorMessage });
         }
     }
-    
-    
-    
 
     private removePlayer(): void {
         const playerId = playerConnections.get(this.socket);
