@@ -1,53 +1,35 @@
-import express, { Request, Response } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
-import { WebSocketServer } from 'ws';
-import { table } from '../game/game';
-import { SocketMaganer, playerConnections } from '../game/socketMaganer';
+import http, { Server as HTTPServer } from 'http';
+import { Server as SocketIOServer, Socket } from 'socket.io';
+import { SocketManager } from './http/websocket/socketIo';
 
-const app = express();
+const app: Application = express();
 const port = 3000;
 
-// Configurações
 app.use(cors());
 app.set('views', path.resolve('src', 'ui', 'views'));
 app.set('view engine', 'ejs');
-// Configurar pasta estática
 app.use(express.static(path.join(__dirname, '../ui/public')));
+
 
 // Rotas
 app.get('/', (req: Request, res: Response) => {
   res.render('index');
 });
 
+const server: HTTPServer = http.createServer(app);
+const io: SocketIOServer = new SocketIOServer(server);
 
-// WebSocket
-const server = app.listen(port, () => {
-  console.log(`Servidor HTTP rodando em http://localhost:${port}`);
+io.on('connection', (socket: Socket) => {
+  console.log('Novo jogador conectado');
+
+  const socketManager = new SocketManager(io, socket);
+  socketManager.sendToClient({ msg: "Bem-vindo ao jogo!" });
+  socketManager.sendToAll({ msg: "Novo jogador conectado" });
 });
 
-const wss = new WebSocketServer({ server });
-
-wss.on('connection', (ws) => {
-
-  const socketMaganer = new SocketMaganer({ ws, wss });
-  socketMaganer.send({
-    msg: "novo jogador conectado"
-  })
-
-  ws.on('message', async (data) => {
-    const message = JSON.parse(data.toString());
-    socketMaganer.send(message)
-  });
-
-  ws.on('close', () => {
-    socketMaganer.send({
-      msg: "remover player",
-    })
-  });
-
-  ws.on('error', (error) => {
-    console.error('>>> Erro no WebSocket: ', error);
-  });
-
+server.listen(port, () => {
+  console.log(`Servidor rodando na porta ${port}`);
 });

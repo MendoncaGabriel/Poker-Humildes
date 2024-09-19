@@ -4,7 +4,7 @@ import { handleEventGameplay } from './entities/gameplay';
 
 export const playerConnections = new Map();
 
-export class SocketMaganer {
+export class socketMaganer.ts {
   private ws: WebSocket;
   private wss: WebSocket.Server;
 
