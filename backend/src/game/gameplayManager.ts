@@ -1,151 +1,112 @@
 import { Socket } from 'socket.io';
 import { SocketManager } from '../server/http/websocket/socketManager';
 import { game, Room } from './game';
-import { Table } from './entities/table';
 import { Player } from './entities/player';
+import { Table } from './entities/table';
 
 export const playerConnections = new Map<Socket, string>();
 
 export class GameplayManager {
-    constructor(
-        private readonly socketManager: SocketManager,
-        private readonly socket: Socket
-    ) { }
+  constructor(
+    private socketManager: SocketManager,
+    private socket: Socket
+  ) {}
 
-    public execute(message: any): void {    
-        switch (message.msg) {
-            case 'sentar player na mesa':
-                if (!message.data) {
-                    console.error('Dados ausentes no message.data');
-                    return this.socketManager.sendToAll({ msg: 'Dados ausentes' });
-                }
-                this.sitPlayer(message.data);
-                this.checkStart();
-                break;
-    
-            case 'remover player':
-                this.removePlayer();
-                break;
-    
-            case 'verificar players na mesa':
-                this.hasActivePlayersInTable({ table: this.getTableByRoomId(message.data.room.id) });
-                break;
-    
-            default:
-                console.log('Mensagem desconhecida:', message.msg);
-                break;
+  public execute(message: any): void {
+    switch (message.msg) {
+      case 'sentar player na mesa':
+        if (!message.data) {
+          return this.socketManager.sendToAll({ msg: '⚠️ Dados ausentes' });
         }
-    }
-    
-    private getTableByRoomId(roomId: string): Table {
-        const room = game.getRoomById(roomId);
-        if (!room) throw new Error(`Sala com ID ${roomId} não encontrada.`);
-        return room.table;
-    }
+        this.sitPlayer(message.data);
+        this.checkStart();
+        break;
 
-    private hasActivePlayersInTable({ table }: { table: Table }) {
-        this.execute({ msg: "remover player" });
+      case 'remover player':
+        this.removePlayer();
+        break;
 
-        if (table.chairs.length == 0) {
-            console.log(">>> 🎲 gameplay: mesa vazia.");
-        }
+      case 'verificar players na mesa':
+        this.checkPlayersInTable();
+        break;
+
+      default:
+        console.log('❓ Mensagem desconhecida:', message.msg);
+        break;
     }
+  }
 
-    private checkStart() {
-        const table = this.getTableByRoomId('sala-1'); 
-        if (table.state === "waitingForPlayers" && table.chairs.length >= 2) {
-            let delayToStart = 3000;
-            console.log(">>> 🎲 gameplay: começado jogo em 3s...");
-            setTimeout(() => {
-                table.lookTabe();  
-                table.setState('running');
-                console.log(">>> 🎲 gameplay: jogo iniciado.");
-                this.handleStartPlay({ table });
-            }, delayToStart);
-        }
+  private getTableByRoomId(roomId: string): Table {
+    const room = game.getRoomById(roomId);
+    if (!room) throw new Error(`🚫 Sala com ID ${roomId} não encontrada.`);
+    return room.table;
+  }
+
+  private checkPlayersInTable(): void {
+    const table = this.getTableByRoomId('sala-1');
+
+    if (table.chairs.length === 0) {
+      console.log("🪑 Mesa vazia.");
     }
-    
-private handleStartPlay({ table }: { table: Table }) {
-    console.log(`>>> 🎲 gameplay: ${table.chairs.length} jogadores estão na mesa.`);
+  }
 
+  private checkStart(): void {
+    const table = this.getTableByRoomId('sala-1');
+    if (table.state === "waitingForPlayers" && table.chairs.length >= 2) {
+      console.log("⏳ Começando jogo em 3s...");
+      setTimeout(() => {
+        table.lookTabe();
+        table.setState('running');
+        this.handleStartPlay(table);
+      }, 3000);
+    }
+  }
+
+  private handleStartPlay(table: Table): void {
+    console.log(`>>> 🃏 ${table.chairs.length} jogadores estão na mesa.`);
     if (table.chairs.length >= 2) {
-        table.dealer.shuffleCards();
-        table.assignBlinds();  // Define os blinds dinamicamente
-
-        table.dealer.sortCardstable();
-        table.dealer.distributeCardsToPlayers();
-
-        table.selectTurnPlayer();  // Seleciona quem vai começar a rodada
-
-        this.socketManager.sendToAll("show flop");
-    } else if (table.chairs.length > 2) {
-        table.dealer.shuffleCards();
-
-        table.assignBlinds();  // Aqui, os blinds são rotativos para qualquer número de jogadores
-
-        table.dealer.sortCardstable();
-        table.dealer.distributeCardsToPlayers();
-
-        // Agora, o jogador à esquerda do Big Blind tem a vez de jogar
-        const bigBlindIndex = table.chairs.findIndex(player => player.state.isBigBlind == true);
-        const nextPlayerIndex = (bigBlindIndex + 1) % table.chairs.length;
-
-        table.chairs.forEach((player, index) => {
-            player.setState({ myTurn: index === nextPlayerIndex });
-        });
-
-        this.socketManager.sendToAll("show flop");
+      table.dealer.shuffleCards();
+      table.assignBlinds();
+      table.dealer.sortCardstable();
+      table.dealer.distributeCardsToPlayers();
+      table.selectTurnPlayer();
+      this.socketManager.sendToAll("show flop");
     }
-}
+  }
 
-    
-    private sitPlayer(data: any): void {
-        // console.log('Data recebida:', data); // Log para depuração
-    
-        const { player, room } = data;
-        
-        const table = this.getTableByRoomId(room.id);
-    
-        const newPlayer = new Player({
-            id: player.id,
-            name: player.name
-        });
-    
-        newPlayer.state = { sitting: true };
-        playerConnections.set(this.socket, player.id);
-    
-        try {
-            table.sitPlayer(newPlayer);
-    
-            const updateMessage = {
-                msg: "exibir players da mesa",
-                chairs: table.chairs
-            };
-            this.socketManager.sendToAll(updateMessage);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido';
-            this.socketManager.sendToAll({ msg: errorMessage });
-        }
+  private sitPlayer(data: any): void {
+    const { player, room } = data;
+    const table = this.getTableByRoomId(room.id);
+    const newPlayer = new Player({ id: player.id, name: player.name });
+    newPlayer.state = { sitting: true };
+    playerConnections.set(this.socket, player.id);
+
+    try {
+      table.sitPlayer(newPlayer);
+      this.socketManager.sendToAll({
+        msg: "exibir players da mesa",
+        chairs: table.chairs
+      });
+    } catch (error) {
+      this.socketManager.sendToAll({ msg: error instanceof Error ? `⚠️ ${error.message}` : '⚠️ Erro desconhecido' });
     }
+  }
 
-    private removePlayer(): void {
-        const playerId = playerConnections.get(this.socket);
-        let room;
+  private removePlayer(): void {
+    const playerId = playerConnections.get(this.socket);
+    let room;
     
-        if (playerId) {
-            room = game.rooms.find(r => r.table.chairs.some(chair => chair.id === playerId));
-            if (room) {
-                room.table.kickPlayer(playerId);
-                playerConnections.delete(this.socket);
-            }
-        }
-    
-        const updateMessage = {
-            msg: "exibir players da mesa",
-            chairs: room?.table.chairs || []
-        };
-    
-        this.socketManager.sendToAll(updateMessage);
+    if (playerId) {
+      room = game.rooms.find(r => r.table.chairs.some(chair => chair.id === playerId));
+      if (room) {
+        room.table.kickPlayer(playerId);
+        playerConnections.delete(this.socket);
+      }
     }
     
+    this.socketManager.sendToAll({
+      msg: "exibir players da mesa",
+      chairs: room?.table.chairs || []
+    });
+  }
 }
