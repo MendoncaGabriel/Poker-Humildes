@@ -29,7 +29,10 @@ const App = () => {
       setPlayers([]);
     } else {
       // Conectar o socket
-      const newSocket = connectSocket('http://localhost:3000');
+      const apiUrl = import.meta.env.VITE_API_URL; // Deveria ser "http://localhost:3000" em desenvolvimento
+      const newSocket = connectSocket(`${apiUrl}`); // Certifique-se de usar a URL correta
+      
+
       setSocket(newSocket);
 
       newSocket.on('connect', () => {

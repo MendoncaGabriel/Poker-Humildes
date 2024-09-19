@@ -1,18 +1,14 @@
-import io from 'socket.io-client';
-
-let socket = null;
+import { io } from 'socket.io-client';
 
 export const connectSocket = (url) => {
-  if (!socket) {
-    socket = io(url);
-  }
+  const socket = io(url, {
+    transports: ['websocket'], // Pode ser necessário para WebSocket
+  });
   return socket;
 };
 
-export const disconnectSocket = () => {
+export const disconnectSocket = (socket) => {
   if (socket) {
     socket.disconnect();
-    socket = null;
   }
-  return socket;
 };

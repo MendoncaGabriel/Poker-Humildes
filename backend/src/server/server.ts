@@ -10,13 +10,17 @@ const app: Application = express();
 const port = 3000;
 
 app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Substitua pela URL de desenvolvimento do seu frontend
+}));
+
 
 // Serve arquivos estáticos da pasta dist do frontend
-app.use(express.static(path.resolve(__dirname, '../../frontend/dist')));
+app.use(express.static(path.resolve(__dirname, '../../../frontend/dist')));
 
 // Rota para servir o arquivo HTML principal
 app.get('*', (req: Request, res: Response) => {
-  res.sendFile(path.resolve(__dirname, '../../frontend/dist', 'index.html'));
+  res.sendFile(path.resolve(__dirname, '../../../frontend/dist', 'index.html'));
 });
 
 const server: HTTPServer = http.createServer(app);
