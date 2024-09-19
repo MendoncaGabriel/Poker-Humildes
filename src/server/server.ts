@@ -3,7 +3,8 @@ import cors from 'cors';
 import path from 'path';
 import http, { Server as HTTPServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { SocketManager } from './http/websocket/socketIo';
+import { SocketManager } from './http/websocket/socketManager';
+import { GameplayManager } from '../game/gameplayManager';
 
 const app: Application = express();
 const port = 3000;
@@ -21,13 +22,22 @@ app.get('/', (req: Request, res: Response) => {
 
 const server: HTTPServer = http.createServer(app);
 const io: SocketIOServer = new SocketIOServer(server);
+const socketManager = new SocketManager(io);
 
 io.on('connection', (socket: Socket) => {
   console.log('Novo jogador conectado');
 
-  const socketManager = new SocketManager(io, socket);
-  socketManager.sendToClient({ msg: "Bem-vindo ao jogo!" });
-  socketManager.sendToAll({ msg: "Novo jogador conectado" });
+  socketManager.handleConnection(socket);
+
+  const gameplayManager = new GameplayManager(socketManager, socket);
+
+  socket.on('message', (message: any) => {
+    gameplayManager.execute(message);
+  });
+
+  socket.on('disconnect', () => {
+    gameplayManager.execute({msg: "remover player"})
+  });
 });
 
 server.listen(port, () => {
