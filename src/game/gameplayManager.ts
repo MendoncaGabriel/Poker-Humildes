@@ -67,60 +67,39 @@ export class GameplayManager {
         }
     }
     
-    private handleStartPlay({ table }: { table: Table }) {
-        console.log(`>>> 🎲 gameplay: ${table.chairs.length} jogadores estão na mesa.`);
+private handleStartPlay({ table }: { table: Table }) {
+    console.log(`>>> 🎲 gameplay: ${table.chairs.length} jogadores estão na mesa.`);
 
-        
-        if (table.chairs.length == 2) {
-            const smallBlind = table.minBet;
-            const bigBlind = smallBlind * 2;
+    if (table.chairs.length >= 2) {
+        table.dealer.shuffleCards();
+        table.assignBlinds();  // Define os blinds dinamicamente
 
-            table.dealer.shuffleCards();
-    
-            const playerSmallBlind = table.chairs[0]; 
-            playerSmallBlind.setState({ myTurn: false })
-            
-            const playerBigBlind = table.chairs[1];
-            playerBigBlind.setState({ myTurn: true }) //primeiro a apostar apost o pre flop
-    
-            playerSmallBlind.setBetPot(smallBlind);
-            playerBigBlind.setBetPot(bigBlind);
+        table.dealer.sortCardstable();
+        table.dealer.distributeCardsToPlayers();
 
-            table.dealer.sortCardsFlop();
-            // table.dealer.sortCardTurn();
-            // table.dealer.sortCardRiver();
-            table.dealer.distributeCardsToPlayers();
+        table.selectTurnPlayer();  // Seleciona quem vai começar a rodada
 
-            this.socketManager.sendToAll("show flop")
-            //iniciar rodada e apostas
-            // - adicionar logica para aposta
-            // - adicionar timer de aposta
-            // - adicionar logica para passar a vez de aposta
-            // - adiconar logica para girar a mesa
-            // - adicionar logica para mover o pot do player para o pot da mesa
-  
-        }else if(table.chairs.length > 2){
-            table.dealer.shuffleCards();
+        this.socketManager.sendToAll("show flop");
+    } else if (table.chairs.length > 2) {
+        table.dealer.shuffleCards();
 
-            const smallBlind = table.minBet;
-            const bigBlind = smallBlind * 2;
+        table.assignBlinds();  // Aqui, os blinds são rotativos para qualquer número de jogadores
 
-            const playerSmallBlind = table.chairs[0]; 
-            playerSmallBlind.setState({ myTurn: false })
-            
-            const playerBigBlind = table.chairs[1];
-            playerBigBlind.setState({ myTurn: true })
+        table.dealer.sortCardstable();
+        table.dealer.distributeCardsToPlayers();
 
-            table.dealer.sortCardsFlop();
+        // Agora, o jogador à esquerda do Big Blind tem a vez de jogar
+        const bigBlindIndex = table.chairs.findIndex(player => player.state.isBigBlind == true);
+        const nextPlayerIndex = (bigBlindIndex + 1) % table.chairs.length;
 
-            table.dealer.distributeCardsToPlayers();
+        table.chairs.forEach((player, index) => {
+            player.setState({ myTurn: index === nextPlayerIndex });
+        });
 
-            // jogador ao lado do big bling tem a vez para apostar
-
-            //depois que todos apostarem pode mostrar o flop
-            //this.socketManager.sendToAll("show flop")
-        }
+        this.socketManager.sendToAll("show flop");
     }
+}
+
     
     private sitPlayer(data: any): void {
         // console.log('Data recebida:', data); // Log para depuração

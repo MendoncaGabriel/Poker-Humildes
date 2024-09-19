@@ -6,6 +6,7 @@ interface Hand {
 }
 
 interface PlayerStates {
+    isBigBlind?: unknown;
     myTurn?: boolean;  // minha vez
     sitting?: boolean; // sentado
     toGiveUp?: boolean; // desistiu
