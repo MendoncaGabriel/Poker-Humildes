@@ -12,16 +12,13 @@ class Room {
         this.id = id;
         this.card = new DeckCard();
         
-        // Primeiro crie a instância de Table
         this.table = new Table({
             minBet: 10,
             dealer: null! // Use uma asserção de não nulo (ainda não inicializado)
         });
 
-        // Agora crie a instância de Dealer
         this.dealer = new Dealer(this.card, this.table); 
 
-        // Atualize a instância de Table com a instância de Dealer
         this.table.dealer = this.dealer;
     }
 }

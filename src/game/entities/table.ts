@@ -29,7 +29,7 @@ export class Table {
         this.maxPlayers = 7;
         this.lockedTable = false;
         this.state = "waitingForPlayers";
-        this.dealer = dealer;  // Inicialize o dealer com o parâmetro recebido
+        this.dealer = dealer;  
     }
     
     setState(state: StateTable){

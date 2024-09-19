@@ -55,12 +55,12 @@ export class GameplayManager {
     }
 
     private checkStart() {
-        const table = this.getTableByRoomId('sala-1'); // Exemplo: usando o ID da sala
+        const table = this.getTableByRoomId('sala-1'); 
         if (table.state === "waitingForPlayers" && table.chairs.length >= 2) {
             let delayToStart = 3000;
             console.log(">>> 🎲 gameplay: começado jogo em 3s...");
             setTimeout(() => {
-                table.lookTabe(); // Corrigido aqui
+                table.lookTabe();  
                 table.setState('running');
                 console.log(">>> 🎲 gameplay: jogo iniciado.");
                 this.handleStartPlay({ table });
@@ -77,7 +77,7 @@ export class GameplayManager {
             const smallBlind = table.minBet;
             const bigBlind = smallBlind * 2;
     
-            const playerSmallBlind = table.chairs[0]; // Não crie uma nova instância, use a já existente
+            const playerSmallBlind = table.chairs[0]; 
             const playerBigBlind = table.chairs[1];
     
             playerSmallBlind.setBetPot(smallBlind);
@@ -92,7 +92,6 @@ export class GameplayManager {
     private sitPlayer(data: any): void {
         // console.log('Data recebida:', data); // Log para depuração
     
-        // Verifique se o objeto data possui as propriedades necessárias
         if (!data || !data.player || !data.room) {
             console.error('Dados inválidos:', data);
             return this.socketManager.sendToAll({ msg: 'Dados inválidos' });
@@ -100,31 +99,25 @@ export class GameplayManager {
     
         const { player, room } = data;
         
-        // Obtenha a mesa a partir do ID da sala
         const table = this.getTableByRoomId(room.id);
     
-        // Crie uma nova instância de Player
         const newPlayer = new Player({
             id: player.id,
             name: player.name
         });
     
-        // Atualize o estado do jogador
         newPlayer.state = { sitting: true };
         playerConnections.set(this.socket, player.id);
     
         try {
-            // Tente sentar o jogador na mesa
             table.sitPlayer(newPlayer);
     
-            // Envie uma mensagem atualizada para todos os clientes
             const updateMessage = {
                 msg: "exibir players da mesa",
                 chairs: table.chairs
             };
             this.socketManager.sendToAll(updateMessage);
         } catch (error) {
-            // Trate erros e envie uma mensagem de erro
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido';
             this.socketManager.sendToAll({ msg: errorMessage });
         }
