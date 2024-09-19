@@ -10,14 +10,13 @@ const app: Application = express();
 const port = 3000;
 
 app.use(cors());
-app.set('views', path.resolve('src', 'ui', 'views'));
-app.set('view engine', 'ejs');
-app.use(express.static(path.join(__dirname, '../ui/public')));
 
+// Serve arquivos estáticos da pasta dist do frontend
+app.use(express.static(path.resolve(__dirname, '../../frontend/dist')));
 
-// Rotas
-app.get('/', (req: Request, res: Response) => {
-  res.render('index');
+// Rota para servir o arquivo HTML principal
+app.get('*', (req: Request, res: Response) => {
+  res.sendFile(path.resolve(__dirname, '../../frontend/dist', 'index.html'));
 });
 
 const server: HTTPServer = http.createServer(app);
@@ -27,15 +26,14 @@ const socketManager = new SocketManager(io);
 io.on('connection', (socket: Socket) => {
   const gameplayManager = new GameplayManager(socketManager, socket);
   socketManager.handleConnection(socket);
-  console.log(">>> 🖥️  Socket: Novo usuario conectado")
+  console.log(">>> 🖥️  Socket: Novo usuario conectado");
 
-    
   socket.on('message', (message: any) => {
     gameplayManager.execute(message);
   });
 
   socket.on('disconnect', () => {
-    gameplayManager.execute({msg: "verificar players na mesa"})
+    gameplayManager.execute({ msg: "verificar players na mesa" });
   });
 });
 

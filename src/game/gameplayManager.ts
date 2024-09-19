@@ -13,7 +13,10 @@ export class GameplayManager {
     ) { }
 
     public execute(message: any): void {
-        // console.log('Mensagem recebida:', message); // Log para depuração
+        if (!message || !message.data) {
+            console.error('Mensagem ou dados ausentes:', message);
+            return;
+        }
     
         switch (message.msg) {
             case 'sentar player na mesa':
