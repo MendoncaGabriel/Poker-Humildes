@@ -11,7 +11,7 @@ const port = 3000;
 
 app.use(cors());
 app.use(cors({
-  origin: 'http://localhost:5173', // Substitua pela URL de desenvolvimento do seu frontend
+  origin: 'http://localhost:5173', 
 }));
 
 

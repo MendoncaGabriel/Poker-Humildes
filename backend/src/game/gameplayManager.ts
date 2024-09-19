@@ -12,12 +12,7 @@ export class GameplayManager {
         private readonly socket: Socket
     ) { }
 
-    public execute(message: any): void {
-        if (!message || !message.data) {
-            console.error('Mensagem ou dados ausentes:', message);
-            return;
-        }
-    
+    public execute(message: any): void {    
         switch (message.msg) {
             case 'sentar player na mesa':
                 if (!message.data) {
@@ -106,11 +101,6 @@ private handleStartPlay({ table }: { table: Table }) {
     
     private sitPlayer(data: any): void {
         // console.log('Data recebida:', data); // Log para depuração
-    
-        if (!data || !data.player || !data.room) {
-            console.error('Dados inválidos:', data);
-            return this.socketManager.sendToAll({ msg: 'Dados inválidos' });
-        }
     
         const { player, room } = data;
         
