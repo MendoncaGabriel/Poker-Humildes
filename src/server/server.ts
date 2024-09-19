@@ -25,18 +25,17 @@ const io: SocketIOServer = new SocketIOServer(server);
 const socketManager = new SocketManager(io);
 
 io.on('connection', (socket: Socket) => {
-  console.log('Novo jogador conectado');
-
-  socketManager.handleConnection(socket);
-
   const gameplayManager = new GameplayManager(socketManager, socket);
+  socketManager.handleConnection(socket);
+  console.log(">>> 🖥️  Socket: Novo usuario conectado")
 
+    
   socket.on('message', (message: any) => {
     gameplayManager.execute(message);
   });
 
   socket.on('disconnect', () => {
-    gameplayManager.execute({msg: "remover player"})
+    gameplayManager.execute({msg: "verificar players na mesa"})
   });
 });
 

@@ -50,8 +50,13 @@ function connectWebSocket() {
         send({
             msg: 'sentar player na mesa',
             data: {
-                id: Math.random().toString(36).substr(2, 20),
-                name: 'gabriel'
+                player: {
+                    id: Math.random().toString(36).substr(2, 20),
+                    name: 'jhoe-due'
+                },
+                room: {
+                    id: 'sala-1'
+                }
             }
         });
     });

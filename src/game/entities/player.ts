@@ -24,8 +24,8 @@ enum PlayerAction {
 export class Player {
     public id: string;
     public name: string;
-    private wallet: number;
-    private betPot: number;
+    public wallet: number;
+    public betPot: number;
     public hand?: Hand;
     public state: PlayerStates;
     public actions: PlayerAction[]; 
@@ -62,6 +62,7 @@ export class Player {
 
     setBetPot(value: number): void {
         this.betPot = value;
+        console.log(`>>> 🙋‍♂️ player: ${this.name}-${this.id} apostou ${this.getBetPot()}`)
     }
 
     setHand({ fistCard, secoundCard }: Hand): void {

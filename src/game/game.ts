@@ -2,19 +2,53 @@ import { DeckCard } from "./entities/cards";
 import { Dealer } from "./entities/dealer";
 import { Table } from "./entities/table";
 
-// Criando uma mesa
-export const table = new Table({
-    minBet: 0
-})
+class Room {
+    public card: DeckCard;
+    public table: Table;
+    public dealer: Dealer;
+    public id: string;
 
-// Criando um baralho para o dealer
-const cards = new DeckCard()
+    constructor(id: string) {
+        this.id = id;
+        this.card = new DeckCard();
+        
+        // Primeiro crie a instância de Table
+        this.table = new Table({
+            minBet: 10,
+            dealer: null! // Use uma asserção de não nulo (ainda não inicializado)
+        });
 
-// Criar um dealer para a mesa e da a ela um baralho
-const dealer = new Dealer(cards, table)
+        // Agora crie a instância de Dealer
+        this.dealer = new Dealer(this.card, this.table); 
 
-// Sortear flop
-dealer.sortCardsFlop()
+        // Atualize a instância de Table com a instância de Dealer
+        this.table.dealer = this.dealer;
+    }
+}
 
-// Distribuir cartas para os players sentados na mesa
-dealer.distributeCardsToPlayers()
+
+class Game {
+    public id: string;
+    public rooms: Room[];
+
+    constructor(id: string) {
+        this.id = id;
+        this.rooms = [];
+    }
+
+    init() {
+        for (let i = 0; i < 3; i++) {
+            const room = new Room(`sala-${i}`);
+            this.rooms.push(room);
+        }
+    }
+
+    getRoomById(id: string): Room | undefined {
+        return this.rooms.find(room => room.id === id);
+    }
+}
+
+const game = new Game('game-1');
+game.init();
+
+export { game, Room };
