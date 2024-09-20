@@ -1,3 +1,4 @@
+import { Socket } from "dgram";
 import { DeckCard } from "./entities/cards";
 import { Dealer } from "./entities/dealer";
 import { Table } from "./entities/table";
@@ -11,10 +12,11 @@ class Room {
     constructor(id: string) {
         this.id = id;
         this.card = new DeckCard();
+
         
         this.table = new Table({
             minBet: 10,
-            dealer: null! // Use uma asserção de não nulo (ainda não inicializado)
+            dealer: null!, // Use uma asserção de não nulo (ainda não inicializado)
         });
 
         this.dealer = new Dealer(this.card, this.table); 
@@ -31,6 +33,7 @@ class Game {
     constructor(id: string) {
         this.id = id;
         this.rooms = [];
+
     }
 
     init() {

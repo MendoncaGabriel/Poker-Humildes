@@ -1,3 +1,4 @@
+import { Socket } from "socket.io";
 import { Card } from "./cards";
 import { Dealer } from "./dealer";
 import { Player } from "./player";
@@ -79,9 +80,6 @@ export class Table {
         })
 
     }
-
-
-
 
     setCardTable({ flop, turn, river }: { flop: Card[], turn: Card, river: Card }) {
         this.flop = flop
