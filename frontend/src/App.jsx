@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import useSocket from './hooks/useSocket';
 import './index.css';
 import ActionsPlayer from './components/ActionsPlayer';
 import Table from './components/Table';
 
 const App = () => {
+  
   const apiUrl = import.meta.env.VITE_API_URL;
-  const { isConnected, players, statusMessage, connect, disconnect } = useSocket(apiUrl);
+  const { isConnected, players, statusMessage, connect, disconnect, turn } = useSocket(apiUrl);
 
   const handleButtonClick = () => {
     if (isConnected) {
@@ -16,13 +16,15 @@ const App = () => {
     }
   };
 
+
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-lg text-center">
         <h1 className="text-2xl font-bold mb-4">Bem-vindo ao Humildes Poker</h1>
 
         <Table players={players} />
-        <ActionsPlayer />
+        {turn && <ActionsPlayer />}
+        
         <br />
 
         <button

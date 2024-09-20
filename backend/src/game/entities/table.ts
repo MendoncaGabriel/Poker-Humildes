@@ -70,15 +70,12 @@ export class Table {
             this.chairs[0].setState({ myTurn: true });
         }
 
-        console.log(`>>> 🍽️  table: selecionando a vez do jogador na mesa`)
-        let playerWithTurn = this.chairs.forEach(player => {
-            if(player.state.myTurn){
-                console.log(`>>> 🍽️  table: jogador name: ${player.name} id: ${player.id} tem a vez`)
-
-            }
-
-        })
-
+        console.log(`>>> 🍽️ table: selecionando a vez do jogador na mesa`)
+        let playerWithTurn = this.chairs.find(player => player.state.myTurn)
+        if(playerWithTurn){
+            console.log(`>>> 🍽️  table: jogador name: ${playerWithTurn.name} id: ${playerWithTurn.id} tem a vez`)
+            return playerWithTurn
+        }
     }
 
     setCardTable({ flop, turn, river }: { flop: Card[], turn: Card, river: Card }) {
@@ -114,7 +111,6 @@ export class Table {
         return { msg: `Player com id ${player.id} sentou na mesa` };
     }
 
-
     kickPlayer(playerId: string): { msg: string } {
         const player = this.chairs.find(e => e.id == playerId)
         if (!player) return { msg: `player com id ${playerId}, não esta na mesa` }
@@ -125,6 +121,7 @@ export class Table {
     lookTabe() {
         this.lockedTable = true
     }
+
     unLookTabe() {
         this.lockedTable = false
     }

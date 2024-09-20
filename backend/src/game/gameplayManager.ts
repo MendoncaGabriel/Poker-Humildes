@@ -23,7 +23,7 @@ export class GameplayManager {
 
         try {
           await this.sitPlayer(message.data);
-          await this.checkStart();
+          await this.handleStartGame();
         } catch (error) {
           console.error('❌ Erro ao executar comando:', error);
           this.socketManager.sendToAll({ msg: '⚠️ Erro ao processar comando' });
@@ -74,7 +74,7 @@ export class GameplayManager {
     });
   }
 
-  private async checkStart(): Promise<void> {
+  private async handleStartGame(): Promise<void> { 
     const table = await this.getTableByRoomId('sala-1');
 
     if (table.state === "waitingForPlayers" && table.chairs.length >= 2) {
@@ -83,7 +83,16 @@ export class GameplayManager {
         table.lookTabe();
         console.log("🔒 Trancando a mesa...");
         table.setState('running');
-        this.handleStartPlay(table);
+
+        table.dealer.shuffleCards();
+        table.assignBlinds();
+        table.dealer.sortCardstable();
+        table.dealer.distributeCardsToPlayers();
+
+        const playerWithTurn = table.selectTurnPlayer();
+        // console.log(playerWithTurn)
+        this.socketManager.sendToClient(this.socket, {msg: "sua vez"})
+        // this.socketManager.sendToAll("show flop");
       }, 3000);
     } else if (table.chairs.length < 2) {
       console.log("🔓 Destrancando a mesa...");
@@ -93,17 +102,7 @@ export class GameplayManager {
     }
   }
 
-  private handleStartPlay(table: Table): void {
-    console.log(`>>> 🃏 ${table.chairs.length} jogadores estão na mesa.`);
-    if (table.chairs.length >= 2) {
-      table.dealer.shuffleCards();
-      table.assignBlinds();
-      table.dealer.sortCardstable();
-      table.dealer.distributeCardsToPlayers();
-      table.selectTurnPlayer();
-      this.socketManager.sendToAll("show flop");
-    }
-  }
+
 
   private async sitPlayer(data: any): Promise<void> {
     const { player, room } = data;

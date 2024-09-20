@@ -6,6 +6,8 @@ const useSocket = (apiUrl) => {
   const [players, setPlayers] = useState([]);
   const [statusMessage, setStatusMessage] = useState('Usuário desconectado');
   const [socket, setSocket] = useState(null);
+  const [turn, setTurn] = useState(false);
+
 
   useEffect(() => {
     if (socket) {
@@ -16,6 +18,10 @@ const useSocket = (apiUrl) => {
         if (message.msg === 'Mesa cheia' || message.msg === 'Mesa fechada') {
           alert(message.msg);
         }
+        if (message.msg == "sua vez") {
+          setStatusMessage("E a sua vez!")
+          setTurn(true)
+        }
       }, () => {
         setIsConnected(false);
         setStatusMessage('Usuário desconectado');
@@ -25,7 +31,7 @@ const useSocket = (apiUrl) => {
       socket.on('connect', () => {
         setIsConnected(true);
         setStatusMessage('Usuário Conectado!');
-        
+
         sendMessage(socket, {
           msg: "sentar player na mesa",
           data: {
@@ -68,7 +74,9 @@ const useSocket = (apiUrl) => {
     players,
     statusMessage,
     connect,
-    disconnect
+    disconnect,
+    turn
+
   };
 };
 
