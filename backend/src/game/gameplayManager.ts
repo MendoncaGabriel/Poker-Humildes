@@ -21,8 +21,9 @@ export class GameplayManager {
         if (!message.data) {
           return this.socketManager.sendToAll({ msg: '⚠️ Dados ausentes' });
         }
-        this.sitPlayer(message.data);
-        this.checkStart();
+
+        this.checkStart()
+        .then(()=> this.sitPlayer(message.data)) 
         break;
 
       case 'remover player':
@@ -66,17 +67,23 @@ export class GameplayManager {
     });
   }
 
-  private checkStart(): void {
+  private async checkStart(): Promise<void> {
     const table = this.getTableByRoomId('sala-1');
     if (table.state === "waitingForPlayers" && table.chairs.length >= 2) {
       console.log("⏳ Começando jogo em 3s...");
+
       setTimeout(() => {
         table.lookTabe();
+        console.log("🔒 Trancando a mesa...");
         table.setState('running');
         this.handleStartPlay(table);
       }, 3000);
     } else {
-      console.log("🪑 aguardando jogadores")
+      console.log("🔓 Destrancando a mesa...");
+
+      console.log("🪑 Aguardando jogadores")
+      table.unLookTabe()
+      table.setState("waitingForPlayers")
 
     }
   }
