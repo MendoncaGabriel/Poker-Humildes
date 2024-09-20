@@ -1,4 +1,3 @@
-import { Socket } from "socket.io";
 import { Card } from "./cards";
 import { Dealer } from "./dealer";
 import { Player } from "./player";

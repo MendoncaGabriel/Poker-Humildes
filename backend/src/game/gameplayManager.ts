@@ -4,148 +4,182 @@ import { game, Room } from './game';
 import { Player } from './entities/player';
 import { Table } from './entities/table';
 
-export class GameplayManager {
-  public playerConnections: Map<Socket, string>;
+// export class GameplayManager {
+//   public playerConnections: Map<Socket, string>;
 
-  constructor(
-    private socketManager: SocketManager,
-    private socket: Socket,
-  ) {
-    this.playerConnections = new Map<Socket, string>();
-  }
+//   constructor(
+//     private socketManager: SocketManager,
+//     private socket: Socket,
+//   ) {
+//     this.playerConnections = new Map<Socket, string>();
+//     // eventEmitter.on('sentar player na mesa', this.handleSitPlayer.bind(this));
+//   }
 
-  public async execute(message: any): Promise<void> {
-    switch (message.msg) {
-      case 'sentar player na mesa':
-        if (!message.data) {
-          return this.socketManager.sendToAll({ msg: '⚠️ Dados ausentes' });
-        }
+//   private async handleSitPlayer(data: any): Promise<void> {
+//     const { player, room } = data;
+//     const table = await this.getTableByRoomId(room.id);
+//     const newPlayer = new Player({ id: player.id, name: player.name });
+//     newPlayer.state = { sitting: true };
 
-        try {
-          await this.sitPlayer(message.data);
-          await this.handleStartGame();
-        } catch (error) {
-          console.error('❌ Erro ao executar comando:', error);
-          this.socketManager.sendToAll({ msg: '⚠️ Erro ao processar comando' });
-        }
-        break;
+//     // Verificar se o jogador já está na mesa
+//     const existingPlayer = table.chairs.find(chair => chair.id === player.id);
+//     if (existingPlayer) {
+//       console.log(`👤 Jogador ${player.id} já está na mesa.`);
+//       return; // Jogador já está na mesa, nada a fazer
+//     }
 
-      case 'remover player':
-        this.removePlayer();
-        break;
+//     this.playerConnections.set(this.socket, player.id);
 
-      case 'verificar players na mesa':
-        await this.checkPlayersInTable();
-        break;
+//     try {
+//       table.sitPlayer(newPlayer);
+//       this.socketManager.sendToAll({
+//         msg: "exibir players da mesa",
+//         chairs: table.chairs
+//       });
+//     } catch (error) {
+//       console.error('❌ Erro ao sentar jogador:', error);
+//       this.socketManager.sendToAll({ msg: '⚠️ Erro ao sentar jogador' });
+//     }
 
-      default:
-        console.log('❓ Mensagem desconhecida:', message.msg);
-        break;
-    }
-  }
+//   }
 
-  private async getTableByRoomId(roomId: string): Promise<Table> {
-    const room = await game.getRoomById(roomId);
-    if (!room) throw new Error(`🚫 Sala com ID ${roomId} não encontrada.`);
-    return room.table;
-  }
+//   // private async sitPlayer(data: any): Promise<void> {
+//   //   const { player, room } = data;
+//   //   const table = await this.getTableByRoomId(room.id);
+//   //   const newPlayer = new Player({ id: player.id, name: player.name });
+//   //   newPlayer.state = { sitting: true };
 
-  private async checkPlayersInTable(): Promise<void> {
-    const table = await this.getTableByRoomId('sala-1');
+//   //   // Verificar se o jogador já está na mesa
+//   //   const existingPlayer = table.chairs.find(chair => chair.id === player.id);
+//   //   if (existingPlayer) {
+//   //     console.log(`👤 Jogador ${player.id} já está na mesa.`);
+//   //     return; // Jogador já está na mesa, nada a fazer
+//   //   }
 
-    if (table.chairs.length === 0) {
-      console.log("🪑 Mesa vazia.");
-    }
+//   //   this.playerConnections.set(this.socket, player.id);
 
-    if (table.chairs.length < 2) {
-      console.log("🪑 Aguardando jogadores");
-    }
+//   //   try {
+//   //     table.sitPlayer(newPlayer);
+//   //     this.socketManager.sendToAll({
+//   //       msg: "exibir players da mesa",
+//   //       chairs: table.chairs
+//   //     });
+//   //   } catch (error) {
+//   //     console.error('❌ Erro ao sentar jogador:', error);
+//   //     this.socketManager.sendToAll({ msg: '⚠️ Erro ao sentar jogador' });
+//   //   }
+//   // }
 
-    const playerId = this.playerConnections.get(this.socket);
-    if (playerId) {
-      console.log(`👤 Removendo jogador ${playerId} da mesa.`);
-      table.kickPlayer(playerId);
-      this.playerConnections.delete(this.socket);
-    }
+//   public async execute(message: any): Promise<void> {
+//     switch (message.msg) {
+//       case 'sentar player na mesa':
+//         if (!message.data) {
+//           return this.socketManager.sendToAll({ msg: '⚠️ Dados ausentes' });
+//         }
 
-    this.socketManager.sendToAll({
-      msg: "exibir players da mesa",
-      chairs: table.chairs
-    });
-  }
+//         try {
+//           // await this.sitPlayer(message.data);
+//           await this.handleStartGame();
+//         } catch (error) {
+//           console.error('❌ Erro ao executar comando:', error);
+//           this.socketManager.sendToAll({ msg: '⚠️ Erro ao processar comando' });
+//         }
+//         break;
 
-  private async handleStartGame(): Promise<void> { 
-    const table = await this.getTableByRoomId('sala-1');
+//       case 'remover player':
+//         this.removePlayer();
+//         break;
 
-    if (table.state === "waitingForPlayers" && table.chairs.length >= 2) {
-      console.log("⏳ Começando jogo em 3s...");
-      setTimeout(() => {
-        table.lookTabe();
-        console.log("🔒 Trancando a mesa...");
-        table.setState('running');
+//       case 'verificar players na mesa':
+//         await this.checkPlayersInTable();
+//         break;
 
-        table.dealer.shuffleCards();
-        table.assignBlinds();
-        table.dealer.sortCardstable();
-        table.dealer.distributeCardsToPlayers();
+//       case 'avisar jogador que e sua vez':
+//         this.indicateTurnPlayer()
+//         break;
 
-        const playerWithTurn = table.selectTurnPlayer();
-        // console.log(playerWithTurn)
-        this.socketManager.sendToClient(this.socket, {msg: "sua vez"})
-        // this.socketManager.sendToAll("show flop");
-      }, 3000);
-    } else if (table.chairs.length < 2) {
-      console.log("🔓 Destrancando a mesa...");
-      console.log("🪑 Aguardando jogadores");
-      table.unLookTabe();
-      table.setState("waitingForPlayers");
-    }
-  }
+//       default:
+//         console.log('❓ Mensagem desconhecida:', message.msg);
+//         break;
+//     }
+//   }
 
+//   private async indicateTurnPlayer() {
+//     this.socketManager.sendToClient(this.socket, { msg: "sua vez" })
+//   }
 
+//   private async getTableByRoomId(roomId: string): Promise<Table> {
+//     const room = await game.getRoomById(roomId);
+//     if (!room) throw new Error(`🚫 Sala com ID ${roomId} não encontrada.`);
+//     return room.table;
+//   }
 
-  private async sitPlayer(data: any): Promise<void> {
-    const { player, room } = data;
-    const table = await this.getTableByRoomId(room.id);
-    const newPlayer = new Player({ id: player.id, name: player.name });
-    newPlayer.state = { sitting: true };
+//   private async checkPlayersInTable(): Promise<void> {
+//     const table = await this.getTableByRoomId('sala-1');
 
-    // Verificar se o jogador já está na mesa
-    const existingPlayer = table.chairs.find(chair => chair.id === player.id);
-    if (existingPlayer) {
-      console.log(`👤 Jogador ${player.id} já está na mesa.`);
-      return; // Jogador já está na mesa, nada a fazer
-    }
+//     if (table.chairs.length === 0) {
+//       console.log("🪑 Mesa vazia.");
+//     }
 
-    this.playerConnections.set(this.socket, player.id);
+//     if (table.chairs.length < 2) {
+//       console.log("🪑 Aguardando jogadores");
+//     }
 
-    try {
-      table.sitPlayer(newPlayer);
-      this.socketManager.sendToAll({
-        msg: "exibir players da mesa",
-        chairs: table.chairs
-      });
-    } catch (error) {
-      console.error('❌ Erro ao sentar jogador:', error);
-      this.socketManager.sendToAll({ msg: '⚠️ Erro ao sentar jogador' });
-    }
-  }
+//     const playerId = this.playerConnections.get(this.socket);
+//     if (playerId) {
+//       console.log(`👤 Removendo jogador ${playerId} da mesa.`);
+//       table.kickPlayer(playerId);
+//       this.playerConnections.delete(this.socket);
+//     }
 
-  private removePlayer(): void {
-    const playerId = this.playerConnections.get(this.socket);
-    let room;
+//     this.socketManager.sendToAll({
+//       msg: "exibir players da mesa",
+//       chairs: table.chairs
+//     });
+//   }
 
-    if (playerId) {
-      room = game.rooms.find(r => r.table.chairs.some(chair => chair.id === playerId));
-      if (room) {
-        room.table.kickPlayer(playerId);
-        this.playerConnections.delete(this.socket);
-      }
-    }
+//   private async handleStartGame(): Promise<void> {
+//     const table = await this.getTableByRoomId('sala-1');
 
-    this.socketManager.sendToAll({
-      msg: "exibir players da mesa",
-      chairs: room?.table.chairs || []
-    });
-  }
-}
+//     if (table.state === "waitingForPlayers" && table.chairs.length >= 2) {
+//       console.log("⏳ Começando jogo em 3s...");
+//       setTimeout(() => {
+//         table.lookTabe();
+//         console.log("🔒 Trancando a mesa...");
+//         table.setState('running');
+
+//         table.dealer.shuffleCards();
+//         table.assignBlinds();
+//         table.dealer.sortCardstable();
+//         table.dealer.distributeCardsToPlayers();
+
+//         table.selectTurnPlayer();
+//         this.execute({ msg: "avisar jogador que e sua vez" })
+//         // this.socketManager.sendToAll("show flop");
+//       }, 3000);
+//     } else if (table.chairs.length < 2) {
+//       console.log("🔓 Destrancando a mesa...");
+//       console.log("🪑 Aguardando jogadores");
+//       table.unLookTabe();
+//       table.setState("waitingForPlayers");
+//     }
+//   }
+
+//   private removePlayer(): void {
+//     const playerId = this.playerConnections.get(this.socket);
+//     let room;
+
+//     if (playerId) {
+//       room = game.rooms.find(r => r.table.chairs.some(chair => chair.id === playerId));
+//       if (room) {
+//         room.table.kickPlayer(playerId);
+//         this.playerConnections.delete(this.socket);
+//       }
+//     }
+
+//     this.socketManager.sendToAll({
+//       msg: "exibir players da mesa",
+//       chairs: room?.table.chairs || []
+//     });
+//   }
+// }

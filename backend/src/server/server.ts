@@ -3,8 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import http from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { SocketManager } from './http/websocket/socketManager';
-import { GameplayManager } from '../game/gameplayManager';
+import { eventEmitter } from '../event_bus/eventEmitter';
 
 const app: Application = express();
 const port = 3000;
@@ -18,16 +17,19 @@ app.get('*', (req: Request, res: Response) => {
 
 const server = http.createServer(app);
 const io = new SocketIOServer(server);
-const socketManager = new SocketManager(io);
 
 io.on('connection', (socket: Socket) => {
-  const gameplayManager = new GameplayManager(socketManager, socket);
-  socketManager.handleConnection(socket);
-
-  socket.on('message', (message: any) => gameplayManager.execute(message));
-  socket.on('disconnect', () => gameplayManager.execute({ msg: "verificar players na mesa" }));
-
   console.log("👤 Novo usuário conectado");
+
+  socket.on('message', (event: any) => {
+    const {player, room} = event.data
+    eventEmitter.emit(event.msg, { player, room, socket });
+  });  
+
+  socket.on('disconnect', () => {
+    eventEmitter.emit('playerDisconnected', { socketId: socket.id });
+  });
 });
+
 
 server.listen(port, () => console.log(`🚀 Servidor rodando na porta ${port}`));
