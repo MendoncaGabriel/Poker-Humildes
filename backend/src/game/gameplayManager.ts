@@ -4,7 +4,6 @@ import { game, Room } from './game';
 import { Player } from './entities/player';
 import { Table } from './entities/table';
 
-
 export class GameplayManager {
   public playerConnections: Map<Socket, string>;
 
@@ -15,15 +14,20 @@ export class GameplayManager {
     this.playerConnections = new Map<Socket, string>();
   }
 
-  public execute(message: any): void {
+  public async execute(message: any): Promise<void> {
     switch (message.msg) {
       case 'sentar player na mesa':
         if (!message.data) {
           return this.socketManager.sendToAll({ msg: '⚠️ Dados ausentes' });
         }
 
-        this.checkStart()
-        .then(()=> this.sitPlayer(message.data)) 
+        try {
+          await this.sitPlayer(message.data);
+          await this.checkStart();
+        } catch (error) {
+          console.error('❌ Erro ao executar comando:', error);
+          this.socketManager.sendToAll({ msg: '⚠️ Erro ao processar comando' });
+        }
         break;
 
       case 'remover player':
@@ -31,7 +35,7 @@ export class GameplayManager {
         break;
 
       case 'verificar players na mesa':
-        this.checkPlayersInTable();
+        await this.checkPlayersInTable();
         break;
 
       default:
@@ -40,25 +44,28 @@ export class GameplayManager {
     }
   }
 
-  private getTableByRoomId(roomId: string): Table {
-    const room = game.getRoomById(roomId);
+  private async getTableByRoomId(roomId: string): Promise<Table> {
+    const room = await game.getRoomById(roomId);
     if (!room) throw new Error(`🚫 Sala com ID ${roomId} não encontrada.`);
     return room.table;
   }
 
-  private checkPlayersInTable(): void {
-    const table = this.getTableByRoomId('sala-1');
+  private async checkPlayersInTable(): Promise<void> {
+    const table = await this.getTableByRoomId('sala-1');
 
     if (table.chairs.length === 0) {
       console.log("🪑 Mesa vazia.");
     }
 
     if (table.chairs.length < 2) {
-      console.log("🪑 aguardando jogadores")
+      console.log("🪑 Aguardando jogadores");
     }
-    const platerId = this.playerConnections.get(this.socket);
-    if(platerId){
-      table.kickPlayer(platerId)
+
+    const playerId = this.playerConnections.get(this.socket);
+    if (playerId) {
+      console.log(`👤 Removendo jogador ${playerId} da mesa.`);
+      table.kickPlayer(playerId);
+      this.playerConnections.delete(this.socket);
     }
 
     this.socketManager.sendToAll({
@@ -68,23 +75,21 @@ export class GameplayManager {
   }
 
   private async checkStart(): Promise<void> {
-    const table = this.getTableByRoomId('sala-1');
+    const table = await this.getTableByRoomId('sala-1');
+
     if (table.state === "waitingForPlayers" && table.chairs.length >= 2) {
       console.log("⏳ Começando jogo em 3s...");
-
       setTimeout(() => {
         table.lookTabe();
         console.log("🔒 Trancando a mesa...");
         table.setState('running');
         this.handleStartPlay(table);
       }, 3000);
-    } else {
+    } else if (table.chairs.length < 2) {
       console.log("🔓 Destrancando a mesa...");
-
-      console.log("🪑 Aguardando jogadores")
-      table.unLookTabe()
-      table.setState("waitingForPlayers")
-
+      console.log("🪑 Aguardando jogadores");
+      table.unLookTabe();
+      table.setState("waitingForPlayers");
     }
   }
 
@@ -100,13 +105,19 @@ export class GameplayManager {
     }
   }
 
-  private sitPlayer(data: any): void {
+  private async sitPlayer(data: any): Promise<void> {
     const { player, room } = data;
-    const table = this.getTableByRoomId(room.id);
+    const table = await this.getTableByRoomId(room.id);
     const newPlayer = new Player({ id: player.id, name: player.name });
     newPlayer.state = { sitting: true };
 
-    // registra o usuario pelo id
+    // Verificar se o jogador já está na mesa
+    const existingPlayer = table.chairs.find(chair => chair.id === player.id);
+    if (existingPlayer) {
+      console.log(`👤 Jogador ${player.id} já está na mesa.`);
+      return; // Jogador já está na mesa, nada a fazer
+    }
+
     this.playerConnections.set(this.socket, player.id);
 
     try {
@@ -116,7 +127,8 @@ export class GameplayManager {
         chairs: table.chairs
       });
     } catch (error) {
-      this.socketManager.sendToAll({ msg: error instanceof Error ? `⚠️ ${error.message}` : '⚠️ Erro desconhecido' });
+      console.error('❌ Erro ao sentar jogador:', error);
+      this.socketManager.sendToAll({ msg: '⚠️ Erro ao sentar jogador' });
     }
   }
 
