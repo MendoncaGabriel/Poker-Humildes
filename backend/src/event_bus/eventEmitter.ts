@@ -1,28 +1,13 @@
 import { EventEmitter } from 'events';
-import { SitPlayerInTableUseCase } from '../usecase/sit_player_In_table_usecase';
-import { socketManager } from '../server/server';
+import { PlayerConnectUseCase } from '../usecase/player_connect_usacase';
 import { PlayerDisconnectedUsecase } from '../usecase/player_disconnected_usecase';
-import { Table } from '../game/entities/table';
+import { StartGameUseCase } from '../usecase/start_game_usecase';
+import { ShowPlayerInTableUseCase } from '../usecase/show_player_in_table_usecase';
 
-const sitPlayerInTableUseCase = new SitPlayerInTableUseCase()
+export const eventEmitter = new EventEmitter();
+
+const playerConnectUseCase = new PlayerConnectUseCase()
 const playerDisconnectedUsecase = new PlayerDisconnectedUsecase()
+const startGameUseCase = new StartGameUseCase()
+const showPlayerInTableUseCase = new ShowPlayerInTableUseCase()
 
-class EventCentralizer extends EventEmitter {
-  constructor() {
-    super();
-    this.init();
-  }
-
-  private init() {
-    this.on("sentar player na mesa", sitPlayerInTableUseCase.handle);
-
-    this.on("exibir players da mesa", (table: Table): void => {
-      const chairs = table.chairs
-      socketManager.sendToTable(table.id, { msg: "exibir players da mesa", chairs })
-    })
-    
-    this.on("playerDisconnected", playerDisconnectedUsecase.handle)
-  }
-}
-
-export const eventEmitter = new EventCentralizer();

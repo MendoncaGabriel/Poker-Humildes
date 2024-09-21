@@ -13,9 +13,12 @@ export interface SitPlaterInTableInput {
     socket: Socket
 }
 
-export class SitPlayerInTableUseCase {
+export class PlayerConnectUseCase {
+    constructor(){
+        eventEmitter.on("conectar player a mesa", this.handle.bind(this))
+    }
+    
     handle(data: SitPlaterInTableInput){
-        console.log(data.player.id)
         playerTableMap.set(data.player.id, data.table.id);   
         conectionsUser.set(data.socket, data.player.id)
 
@@ -26,6 +29,7 @@ export class SitPlayerInTableUseCase {
     
             tableRoom?.sitPlayer(data.player)
             eventEmitter.emit("jogador sentou na mesa", data)
+            eventEmitter.emit("iniciar jogo")
         }
     }
 }

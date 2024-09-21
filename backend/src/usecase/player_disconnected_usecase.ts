@@ -4,6 +4,10 @@ import { eventEmitter } from "../event_bus/eventEmitter";
 import { tables } from "../game/entities/table";
 
 export class PlayerDisconnectedUsecase {
+    constructor(){
+        eventEmitter.on('sentar player na mesa', this.handle.bind(this));
+
+    }
     handle({ socket }: { socket: Socket }) {
         console.log("💻 Player desconectou");
 
