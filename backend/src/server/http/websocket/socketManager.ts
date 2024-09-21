@@ -1,25 +1,36 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
+import { eventEmitter } from '../../../event_bus/eventEmitter';
 
 export class SocketManager {
-  constructor(private io: SocketIOServer) {}
 
-  public handleConnection(socket: Socket): void {
-    socket.on('disconnect', () => this.sendToAll({ msg: "remover player" }));
-    socket.on('message', (message: any) => {
-      try {
-        const parsedMessage = typeof message === 'string' ? JSON.parse(message) : message;
-        this.sendToAll(parsedMessage);
-      } catch (error) {
-        console.error('🔴 Erro ao processar a mensagem recebida:', error);
-      }
+  constructor(private io: SocketIOServer) {
+    this.init();
+  }
+
+  public sendToTable(tableId: string, message: any): void {
+    // Envia a mensagem apenas para os sockets na sala correspondente
+    this.io.to(tableId).emit('message', message);
+  }
+
+  public addToTable(socket: Socket, tableId: string): void {
+    // Adiciona o socket à sala específica
+    socket.join(tableId);
+  }
+
+  public init(): void {
+    this.io.on('connection', (socket: Socket) => {
+      
+      socket.on('message', (event: any) => {
+        // Ignora mensagens que vieram do servidor (flag `fromServer`)
+        if (event.fromServer) return;
+
+        const { player, table } = event;
+        eventEmitter.emit(event.msg, { player, table, socket });
+      });
+
+      socket.on('disconnect', () => {
+        eventEmitter.emit('playerDisconnected', { socket });
+      });
     });
-  }
-
-  public sendToAll(message: any): void {
-    this.io.emit('message', message);
-  }
-
-  public sendToClient(socket: Socket, message: any): void {
-    socket.emit('message', message);
   }
 }

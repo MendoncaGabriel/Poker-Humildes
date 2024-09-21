@@ -1,11 +1,11 @@
 import { EventEmitter } from 'events';
-import { Connections } from '../game/events/connections';
-import { SitPlayer } from '../game/gameplay/sitPlayerInTable';
+import { SitPlayerInTableUseCase } from '../usecase/sit_player_In_table_usecase';
+import { socketManager } from '../server/server';
+import { PlayerDisconnectedUsecase } from '../usecase/player_disconnected_usecase';
+import { Table } from '../game/entities/table';
 
-const connections = new Connections()
-const sitePlayer = new SitPlayer()
-
-
+const sitPlayerInTableUseCase = new SitPlayerInTableUseCase()
+const playerDisconnectedUsecase = new PlayerDisconnectedUsecase()
 
 class EventCentralizer extends EventEmitter {
   constructor() {
@@ -14,10 +14,14 @@ class EventCentralizer extends EventEmitter {
   }
 
   private init() {
-    // Registra os listeners aqui
-    this.on("sentar player na mesa", sitePlayer.handle);
-    this.on("get connection", connections.get);
-    this.on("set connection", connections.set);
+    this.on("sentar player na mesa", sitPlayerInTableUseCase.handle);
+
+    this.on("exibir players da mesa", (table: Table): void => {
+      const chairs = table.chairs
+      socketManager.sendToTable(table.id, { msg: "exibir players da mesa", chairs })
+    })
+    
+    this.on("playerDisconnected", playerDisconnectedUsecase.handle)
   }
 }
 
