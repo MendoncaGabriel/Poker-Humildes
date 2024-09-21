@@ -13,6 +13,7 @@ const useSocket = (apiUrl) => {
     if (socket) {
       setupSocketListeners(socket, (message) => {
         if (message.msg === 'exibir players da mesa') {
+          console.log(message)
           setPlayers(message.chairs);
         }
         if (message.msg === 'Mesa cheia' || message.msg === 'Mesa fechada') {
@@ -34,15 +35,13 @@ const useSocket = (apiUrl) => {
 
         sendMessage(socket, {
           msg: "sentar player na mesa",
-          data: {
-            player: {
-              id: `id-${Date.now()}`,
-              name: "jhoe due"
-            },
-            room: {
-              id: "sala-1"
-            }
+          player: {
+            id: `${Date.now()}`,
+            name: "jhoe due"
           },
+          table: {
+            id: "table-1"
+          }
         });
       });
     }
