@@ -49,7 +49,7 @@ export class Table {
         //toda vez que mudar seu estado deve emitir um sinal 
     }
 
-    getState():StateTable  {
+    getState(): StateTable {
         return this.state
     }
 
@@ -89,17 +89,17 @@ export class Table {
 
     assignBlinds() {
         console.log(`🏓 Definindo Small blind e Big blind da mesa`);
-        
-        
+
+
         const smallBlindIndex = (this.dealerPosition + 1) % this.chairs.length;
         const bigBlindIndex = (this.dealerPosition + 2) % this.chairs.length;
-        
+
         const smallBlindPlayer = this.chairs[smallBlindIndex];
         const bigBlindPlayer = this.chairs[bigBlindIndex];
-        
+
         const smallBlindAmount = this.minBet;
         const bigBlindAmount = smallBlindAmount * 2;
-        
+
         if (smallBlindPlayer) {
             smallBlindPlayer.setBet({ value: smallBlindAmount, description: "small blind" });
         }
@@ -108,11 +108,10 @@ export class Table {
         }
     }
 
-    selectTurnPlayer() {
-    
+    selectTurnPlayer(cb?: (player: Player) => void): void {
         // Se o índice do turno não estiver definido, iniciamos com o big blind + 1
         if (typeof this.dealerPosition === 'undefined') {
-            this.dealerPosition = (this.dealerPosition + 3) % this.chairs.length;
+            this.dealerPosition = 2; // Definindo a posição inicial como o big blind + 1
         } else {
             // Passa para o próximo jogador
             this.dealerPosition = (this.dealerPosition + 1) % this.chairs.length;
@@ -128,12 +127,16 @@ export class Table {
         if (playerWithTurn) {
             playerWithTurn.setState({ myTurn: true });
             console.log(`🏓 Jogador na vez: ${playerWithTurn.name} (ID: ${playerWithTurn.id})`);
+            
+            // Chama o callback com o jogador, se `cb` estiver definido
+            if (cb) cb(playerWithTurn);
         } else {
             // Se o jogador não está ativo, chama recursivamente para passar para o próximo
-            this.selectTurnPlayer();
+            this.selectTurnPlayer(cb);
         }
     }
     
+
 
 
     private setCardTable({ flop, turn, river }: { flop: Card[], turn: Card, river: Card }) {

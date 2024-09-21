@@ -1,5 +1,7 @@
 import { eventEmitter } from "../event_bus/eventEmitter";
+import { Player } from "../game/entities/player";
 import { Table } from "../game/entities/table";
+import { socketManager } from "../server/server";
 
 export class PreFlopUseCase {
     constructor(){
@@ -13,7 +15,10 @@ export class PreFlopUseCase {
         table.distributeCardsToPlayers()
 
         table.assignBlinds()
-        table.selectTurnPlayer();
-
+        table.selectTurnPlayer(function (player: Player) {
+            socketManager.sendToUser(player.id, { msg: "Sua vez" });
+            console.log(`✅ Jogador selecionado pelo callback: ${player.name} (ID: ${player.id})`);
+        });
+        
     }
 }
