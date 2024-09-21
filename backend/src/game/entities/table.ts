@@ -1,4 +1,4 @@
-import { eventEmitter } from "../../event_bus/eventEmitter";
+import { eventEmitter } from "../event_bus/eventEmitter";
 import { Card, DeckCard } from "./cards";
 import { Player } from "./player";
 
@@ -54,7 +54,7 @@ export class Table {
     }
 
     shuffleCards() {
-        console.log(`🏓 Embaralhando cartas da mesa id: ${this.id}`)
+        console.log(`🏓 Embaralhando cartas da mesa`)
         this.deckCard.shuffle()
     }
 

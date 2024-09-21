@@ -1,5 +1,5 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { eventEmitter } from '../../../event_bus/eventEmitter';
+import { eventEmitter } from '../../../game/event_bus/eventEmitter';
 
 export class SocketManager {
   public userSockets: Map<string, string> = new Map(); // userId -> socketId

@@ -1,6 +1,6 @@
 import { eventEmitter } from "../event_bus/eventEmitter";
-import { tables } from "../game/entities/table";
-import { socketManager } from "../server/server";
+import { tables } from "../entities/table";
+import { socketManager } from "../../server/server";
 
 export class PlayerDisconnectedUsecase {
     constructor() {

@@ -1,5 +1,5 @@
 import { eventEmitter } from "../event_bus/eventEmitter";
-import { Table } from "../game/entities/table";
+import { Table } from "../entities/table";
 
 export class HandleStateTableUseCase {
     constructor(){

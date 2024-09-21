@@ -1,8 +1,8 @@
 import { Socket } from "socket.io";
-import { Player } from "../game/entities/player";
+import { Player } from "../entities/player";
 import { eventEmitter } from "../event_bus/eventEmitter";
-import { tables } from "../game/entities/table";
-import { socketManager } from "../server/server";
+import { tables } from "../entities/table";
+import { socketManager } from "../../server/server";
 
 export interface SitPlaterInTableInput {
     player: Player;

@@ -1,6 +1,6 @@
 import { eventEmitter } from "../event_bus/eventEmitter";
-import { Table } from "../game/entities/table";
-import { socketManager } from "../server/server";
+import { Table } from "../entities/table";
+import { socketManager } from "../../server/server";
 
 export class ShowPlayerInTableUseCase {
     constructor(){
