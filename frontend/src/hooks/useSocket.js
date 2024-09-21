@@ -34,7 +34,7 @@ const useSocket = (apiUrl) => {
         setStatusMessage('Usuário Conectado!');
 
         sendMessage(socket, {
-          msg: "sentar player na mesa",
+          msg: "conectar player a mesa",
           player: {
             id: `${Date.now()}`,
             name: "jhoe due"
