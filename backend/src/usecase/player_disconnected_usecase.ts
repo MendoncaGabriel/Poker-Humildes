@@ -5,23 +5,39 @@ import { tables } from "../game/entities/table";
 
 export class PlayerDisconnectedUsecase {
     constructor(){
-        eventEmitter.on('sentar player na mesa', this.handle.bind(this));
-
+        eventEmitter.on('player desconectou', this.handle.bind(this));
     }
+    
     handle({ socket }: { socket: Socket }) {
-        console.log("💻 Player desconectou");
-
         const playerId = conectionsUser.get(socket); 
+        console.log(`💻🤦‍♂️ Player desconectou`);
+
 
         if (playerId) {
-            console.log(`Jogador encontrado: ${playerId}`);
             conectionsUser.delete(socket); 
+            const tableId = playerTableMap.get(playerId); 
 
-            const tableId = playerTableMap.get(playerId); // Busca a mesa usando o mapa
             if (tableId) {
                 const table = tables.find(t => t.id === tableId);
                 if (table) {
+                    //verificar se p player que caiu tem a vez, se sim passa a vez
+                    const player  = table.chairs.find(e => e.id == playerId)
                     table.kickPlayer(playerId);
+
+                    if(player && player.state.myTurn == true){
+                        console.log(`🙋 player desconectado tinha a vez`)
+                        
+                        setTimeout(() => {
+                            if(table.chairs.length > 1){
+                                table.selectTurnPlayer()
+                                console.log(`🏓 passando a vez para outro player`)
+                            }else{
+                                table.setState("waitingForPlayers")
+                                console.log(`🏓 aguardando players`)
+                            }
+                        }, 2000);
+                    }
+
                     eventEmitter.emit("exibir players da mesa", table);
                 }
             }

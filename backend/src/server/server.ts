@@ -3,8 +3,8 @@ import cors from 'cors';
 import path from 'path';
 import http from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { eventEmitter } from '../event_bus/eventEmitter';
 import { SocketManager } from './http/websocket/socketManager';
+import { eventEmitter } from '../event_bus/eventEmitter';
 
 const app: Application = express();
 const port = 3000;

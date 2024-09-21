@@ -2,24 +2,33 @@ import { eventEmitter } from "../../event_bus/eventEmitter";
 import { Card, DeckCard } from "./cards";
 import { Player } from "./player";
 
-type StateTable = "running" | "waitingForPlayers";
+type StateTable =
+    | "waitingForPlayers" // Aguardando jogadores
+    | "preflop"      // Rodada de pré-flop
+    | "flop"         // Rodada do flop
+    | "turn"         // Rodada do turn
+    | "river"        // Rodada do river
+    | "showdown"     // Fase de revelação das cartas
+    | "end"          // Fim da partida
+    | "locked";      // Mesa bloqueada para novas entradas
+
 
 export class Table {
+    private state: StateTable
     public id: string
     public minBet: number;
     private minPlayers: number;
     private maxPlayers: number;
     private pot: number;
-    private lockedTable: boolean;
     public chairs: Player[];
     public flop: Card[];
     public turn: Card;
     public river: Card;
-    public state: StateTable;
     public dealerPosition: number;
     private readonly deckCard: DeckCard;
 
     constructor(id: string) {
+        this.state = "waitingForPlayers"
         this.id = id
         this.flop = [];
         this.turn = { naipe: "", value: 1 };
@@ -29,88 +38,108 @@ export class Table {
         this.minBet = 10;
         this.minPlayers = 2;
         this.maxPlayers = 7;
-        this.lockedTable = false;
-        this.state = "waitingForPlayers";
         this.dealerPosition = 0;
         this.deckCard = new DeckCard()
     }
 
-    shuffleCards(){
+    setState(state: StateTable) {
+        this.state = state
+        eventEmitter.emit("novo estado", this)
+        //aqui sera um pivo de mudança de estados 
+        //toda vez que mudar seu estado deve emitir um sinal 
+    }
+
+    getState():StateTable  {
+        return this.state
+    }
+
+    shuffleCards() {
+        console.log(`🏓 Embaralhando cartas da mesa id: ${this.id}`)
         this.deckCard.shuffle()
     }
-    
+
     sortCardTable() {
         const [flop1, flop2, flop3, turn, river] = this.deckCard.cards.slice(0, 5);
-        this.deckCard.cards.splice(0, 5); 
-    
+        this.deckCard.cards.splice(0, 5);
+
         this.setCardTable({
             flop: [flop1, flop2, flop3],
             turn,
             river
         });
-    
+
         console.log(`🏓 Distribuindo cartas na mesa`);
     }
-    
+
     distributeCardsToPlayers() {
+
         this.chairs.forEach(playerTable => {
-            if(playerTable.state.sitting == true){
-                const [card1, card2] = this.deckCard.cards.slice(0, 2);
-                
-                const player = new Player(playerTable);
-                player.setHand({
-                    fistCard: card1,
-                    secoundCard: card2
-                });
-            }
+            const [card1, card2] = this.deckCard.cards.slice(0, 2); //seleciona
+            this.deckCard.cards.splice(0, 2); //remove
+
+            playerTable.setHand({
+                fistCard: card1,
+                secoundCard: card2
+            });
+
         });
 
         console.log(`🏓 Distribuindo cartas para os players`);
     }
 
     assignBlinds() {
+        console.log(`🏓 Definindo Small blind e Big blind da mesa`);
+        
+        
         const smallBlindIndex = (this.dealerPosition + 1) % this.chairs.length;
         const bigBlindIndex = (this.dealerPosition + 2) % this.chairs.length;
-
+        
         const smallBlindPlayer = this.chairs[smallBlindIndex];
         const bigBlindPlayer = this.chairs[bigBlindIndex];
-
+        
         const smallBlindAmount = this.minBet;
         const bigBlindAmount = smallBlindAmount * 2;
-
-        smallBlindPlayer.setBetPot(smallBlindAmount);
-        bigBlindPlayer.setBetPot(bigBlindAmount);
-
-        console.log(`🏓 definindo Small blind: ${smallBlindPlayer.name}, Big blind: ${bigBlindPlayer.name}`);
+        
+        if (smallBlindPlayer) {
+            smallBlindPlayer.setBet({ value: smallBlindAmount, description: "small blind" });
+        }
+        if (bigBlindPlayer) {
+            bigBlindPlayer.setBet({ value: bigBlindAmount, description: "big blind" });
+        }
     }
 
     selectTurnPlayer() {
-        const currentTurnIndex = this.chairs.findIndex(player => player.state.myTurn);
-
-        if (currentTurnIndex !== -1) {
-            this.chairs[currentTurnIndex].setState({ myTurn: false });
-            const nextTurnIndex = (currentTurnIndex + 1) % this.chairs.length;
-            this.chairs[nextTurnIndex].setState({ myTurn: true });
+    
+        // Se o índice do turno não estiver definido, iniciamos com o big blind + 1
+        if (typeof this.dealerPosition === 'undefined') {
+            this.dealerPosition = (this.dealerPosition + 3) % this.chairs.length;
         } else {
-            this.chairs[0].setState({ myTurn: true });
+            // Passa para o próximo jogador
+            this.dealerPosition = (this.dealerPosition + 1) % this.chairs.length;
         }
-
-        console.log(`🏓 selecionando a vez do jogador na mesa`)
-
-        let playerWithTurn = this.chairs.find(player => player.state.myTurn)
+    
+        // Reseta a vez de todos os jogadores
+        this.chairs.forEach(player => player.setState({ myTurn: false }));
+    
+        // Define o próximo jogador na vez
+        const playerWithTurn = this.chairs[this.dealerPosition];
+    
+        // Confirma se o jogador ainda está ativo/participando da rodada (por exemplo, não desistiu)
         if (playerWithTurn) {
-            console.log(`🏓 jogador name: ${playerWithTurn.name} id: ${playerWithTurn.id} tem a vez`)
+            playerWithTurn.setState({ myTurn: true });
+            console.log(`🏓 Jogador na vez: ${playerWithTurn.name} (ID: ${playerWithTurn.id})`);
+        } else {
+            // Se o jogador não está ativo, chama recursivamente para passar para o próximo
+            this.selectTurnPlayer();
         }
     }
+    
 
-    setCardTable({ flop, turn, river }: { flop: Card[], turn: Card, river: Card }) {
+
+    private setCardTable({ flop, turn, river }: { flop: Card[], turn: Card, river: Card }) {
         this.flop = flop
         this.turn = turn
         this.river = river
-    }
-
-    setState(state: StateTable) {
-        this.state = state
     }
 
     setMinBet(value: number) {
@@ -120,43 +149,21 @@ export class Table {
     }
 
     sitPlayer(player: Player) {
-        if (this.lockedTable == false) {
-            this.chairs.push(player);
-            console.log(`🏓 Player sentou na mesa - id: ${player.id}, name: ${player.name}`);
-            eventEmitter.emit("exibir players da mesa", this)
-        }
+        this.chairs.push(player);
+        console.log(`🏓 Player sentou na mesa - id: ${player.id}, name: ${player.name}`);
     }
 
-    kickPlayer(playerId: string){
+    kickPlayer(playerId: string) {
         this.chairs = this.chairs.filter(e => e.id !== playerId);
-        console.log(`🏓 Player com id ${playerId} foi removido da mesa`);
+        console.log(`🦵🤦‍♂️🏓 Player foi removido da mesa id: ${playerId}`);
     }
 
-    lookTabe() {
-        if (this.chairs.length >= 2 && this.lockedTable == false) {
-            this.lockedTable = true
-            this.state = "running"
-            console.log(`🏓🔒 Mesa trancou para partida`);
-            eventEmitter.emit("iniciar partida", this)
-
-        } 
-    }
-
-    unLookTabe() {
-        if (this.state = "running") {
-            this.lockedTable = false
-            this.state = "waitingForPlayers"
-            console.log(`🏓 Mesa destrancou para aguardar players`);
-        } else {
-            console.log(`🏓 Mesa não pode destrancar ainsa, esta em uma partida`);
-        }
-    }
 }
 
 const tables: Table[] = []
 
-for(let i = 0; i< 3; i++){
+for (let i = 0; i < 3; i++) {
     tables.push(new Table(`table-${i}`))
 }
 
-export {tables}
+export { tables }

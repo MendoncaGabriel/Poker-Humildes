@@ -8,10 +8,10 @@ export class ShowPlayerInTableUseCase {
     }
 
     handle(table: Table){
-        const chairs = table.chairs
+
         socketManager.sendToTable(table.id, { 
             msg: "exibir players da mesa", 
-            chairs
+            chairs: table.chairs
         })
     }
 }

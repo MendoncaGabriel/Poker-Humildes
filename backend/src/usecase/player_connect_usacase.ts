@@ -17,19 +17,27 @@ export class PlayerConnectUseCase {
     constructor(){
         eventEmitter.on("conectar player a mesa", this.handle.bind(this))
     }
-    
+
     handle(data: SitPlaterInTableInput){
-        playerTableMap.set(data.player.id, data.table.id);   
-        conectionsUser.set(data.socket, data.player.id)
+        
+        const table = tables.find(table => table.id == data.table.id)
+        
+        
+        if (table && table.getState() == "waitingForPlayers") {
+            const player = new Player(data.player)
+            table.sitPlayer(player);
+            
+            socketManager.addToTable(data.socket, table.id);
+            playerTableMap.set(player.id, data.table.id);   
+            conectionsUser.set(data.socket, player.id)
+            eventEmitter.emit("exibir players da mesa", table);
 
-        const tableRoom = tables.find(table => table.id == data.table.id)
-        if(tableRoom){
-
-            socketManager.addToTable(data.socket, tableRoom.id);
-    
-            tableRoom?.sitPlayer(data.player)
-            eventEmitter.emit("jogador sentou na mesa", data)
-            eventEmitter.emit("iniciar jogo")
+            setTimeout(() => {
+                eventEmitter.emit("verificar se a mesa pode comecar", table);
+            }, 5000);
+        } else {
+            data.socket.emit("a mesa está fechada, aguarde a próxima rodada");
+            console.log(`🙋🚫 player tentou entrar na mesa, id: ${data.player.id}, name: ${data.player.name}`)
         }
     }
 }

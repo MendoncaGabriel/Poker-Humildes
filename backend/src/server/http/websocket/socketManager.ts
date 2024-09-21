@@ -29,7 +29,7 @@ export class SocketManager {
       });
 
       socket.on('disconnect', () => {
-        eventEmitter.emit('playerDisconnected', { socket });
+        eventEmitter.emit('player desconectou', { socket });
       });
     });
   }

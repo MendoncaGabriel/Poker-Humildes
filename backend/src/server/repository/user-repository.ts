@@ -1,9 +1,9 @@
 export interface UserCreate {
     username: string,
     email: string,
-    passwordHash: string
+    password: string
 }
 
 export interface UserRepository {
-    create({user}:{user: UserCreate}): void
+    create({user}:{user: UserCreate}): Promise<void>
 }

@@ -14,9 +14,10 @@ const UserRequestBody = z.object({
 
 export class RegisterController {
     async handle(req: Request, _res: Response) {
+        
         const { email, password, username } = UserRequestBody.parse(req.body)
         await userUsecase.execute({
-            email, username, passwordHash: password,
+            email, username, password,
         })
     }
 }

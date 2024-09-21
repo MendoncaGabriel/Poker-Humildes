@@ -26,16 +26,14 @@ export class Player {
     public id: string;
     public name: string;
     public wallet: number;
-    public betPot: number;
     public hand?: Hand;
     public state: PlayerStates;
     public actions: PlayerAction[]; 
 
-    constructor({id, name, wallet = 100, betPot = 0, hand, state = {}, actions = []}: {
+    constructor({id, name, wallet = 100, hand, state = {}, actions = []}: {
         id: string,
         name: string,
         wallet?: number,
-        betPot?: number,
         hand?: Hand,
         state?: PlayerStates,
         actions?: PlayerAction[]
@@ -43,7 +41,6 @@ export class Player {
         this.id = id;
         this.name = name;
         this.wallet = wallet;
-        this.betPot = betPot;
         this.hand = hand;
         this.state = state;
         this.actions = actions;
@@ -57,13 +54,14 @@ export class Player {
         this.wallet = value;
     }
 
-    getBetPot(): number {
-        return this.betPot;
-    }
 
-    setBetPot(value: number): void {
-        this.betPot = value;
-        console.log(`>>> 🙋‍♂️ player: ${this.name}-${this.id} apostou ${this.getBetPot()}`)
+    setBet({value, description = ''}:{value: number, description?: string}): void {
+        if(this.wallet >= value){
+            this.wallet -= value
+            console.log(`🙋‍♂️💰 player ${description}: ${this.name}-${this.id} apostou: ${value}`)
+        }else{
+            console.log(`🙋‍♂️💰 player ${description}: ${this.name}-${this.id} saldo insuficiente para aposta, carteira: ${this.wallet}`)
+        }
     }
 
     setHand({ fistCard, secoundCard }: Hand): void {

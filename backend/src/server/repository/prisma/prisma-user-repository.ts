@@ -8,11 +8,8 @@ export class PrismaUserRepository implements UserRepository {
         { user: Prisma.UserCreateInput }
     ): Promise<void> {
         await db.user.create({
-            data: {
-                username: user.username,
-                email: user.email,
-                passwordHash: user.passwordHash
-            }
+            data: user
+            
         })
     }   
 }
