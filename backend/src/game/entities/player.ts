@@ -54,7 +54,6 @@ export class Player {
         this.wallet = value;
     }
 
-
     setBet({value, description = ''}:{value: number, description?: string}): void {
         if(this.wallet >= value){
             this.wallet -= value

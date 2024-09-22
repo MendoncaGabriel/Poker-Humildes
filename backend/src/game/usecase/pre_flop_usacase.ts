@@ -17,7 +17,7 @@ export class PreFlopUseCase {
         table.assignBlinds()
         table.selectTurnPlayer(function (player: Player) {
             socketManager.sendToUser(player.id, { msg: "Sua vez" });
-            // console.log(`✅ Jogador selecionado pelo callback: ${player.name} (ID: ${player.id})`);
+            eventEmitter.emit("aguardando jogador apostar", {player, table})
         });
         
     }

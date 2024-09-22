@@ -5,6 +5,7 @@ import { StartGameUseCase } from '../usecase/start_game_usecase';
 import { ShowPlayerInTableUseCase } from '../usecase/show_player_in_table_usecase';
 import { PreFlopUseCase } from '../usecase/pre_flop_usacase';
 import { HandleStateTableUseCase } from '../usecase/handle_state_table_usecase';
+import { BettingTimerUseCase } from '../usecase/betting_timer_usecase';
 
 export const eventEmitter = new EventEmitter();
 
@@ -14,4 +15,4 @@ const startGameUseCase = new StartGameUseCase()
 const showPlayerInTableUseCase = new ShowPlayerInTableUseCase()
 const preFlopUseCase = new PreFlopUseCase()
 const handleStateTableUseCase = new HandleStateTableUseCase()
-
+const bettingTimerUseCase = new BettingTimerUseCase()
