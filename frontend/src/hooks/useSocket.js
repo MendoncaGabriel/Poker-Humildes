@@ -7,21 +7,20 @@ const useSocket = (apiUrl) => {
   const [statusMessage, setStatusMessage] = useState('Usuário desconectado');
   const [socket, setSocket] = useState(null);
   const [turn, setTurn] = useState(false);
-
+  const [playerId, setPlayerId] = useState("");
 
   useEffect(() => {
     if (socket) {
       setupSocketListeners(socket, (message) => {
+        console.log("Mensagem recebida:", message); // Adicionando log
+
         if (message.msg === 'exibir players da mesa') {
-          console.log(message)
           setPlayers(message.chairs);
-        }
-        if (message.msg === 'Mesa cheia' || message.msg === 'Mesa fechada') {
+        } else if (message.msg === 'Mesa cheia' || message.msg === 'Mesa fechada') {
           alert(message.msg);
-        }
-        if (message.msg == "sua vez") {
-          setStatusMessage("E a sua vez!")
-          setTurn(true)
+        } else if (message.msg === "Sua vez") {
+          setStatusMessage("É a sua vez!");
+          setTurn(true);
         }
       }, () => {
         setIsConnected(false);
@@ -33,16 +32,20 @@ const useSocket = (apiUrl) => {
         setIsConnected(true);
         setStatusMessage('Usuário Conectado!');
 
-        sendMessage(socket, {
-          msg: "conectar player a mesa",
-          player: {
-            id: `${Date.now()}`,
-            name: "jhoe due"
-          },
-          table: {
-            id: "table-1"
-          }
-        });
+        if (playerId) {
+          sendMessage(socket, {
+            msg: "conectar player a mesa",
+            player: {
+              id: playerId,
+              name: "jhoe due"
+            },
+            table: {
+              id: "table-1"
+            }
+          });
+        } else {
+          console.warn('Player ID não definido!');
+        }
       });
     }
 
@@ -51,9 +54,12 @@ const useSocket = (apiUrl) => {
         disconnectSocket(socket);
       }
     };
-  }, [socket, apiUrl]);
+  }, [socket, playerId]);
 
   const connect = () => {
+    const newPlayerId = `${Date.now()}`;
+    setPlayerId(newPlayerId);
+
     const newSocket = connectSocket(apiUrl);
     setSocket(newSocket);
   };
@@ -74,8 +80,8 @@ const useSocket = (apiUrl) => {
     statusMessage,
     connect,
     disconnect,
-    turn
-
+    turn,
+    playerId,
   };
 };
 

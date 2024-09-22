@@ -6,7 +6,7 @@ import Table from './components/Table';
 const App = () => {
   
   const apiUrl = import.meta.env.VITE_API_URL;
-  const { isConnected, players, statusMessage, connect, disconnect, turn } = useSocket(apiUrl);
+  const { isConnected, players, statusMessage, connect, disconnect, turn, playerId } = useSocket(apiUrl);
 
   const handleButtonClick = () => {
     if (isConnected) {
@@ -34,6 +34,7 @@ const App = () => {
           {isConnected ? 'Sair da mesa' : 'Sentar na mesa 1'}
         </button>
 
+        <p>playerId: {playerId}</p>
         <p className="mt-4 text-lg text-gray-700">{statusMessage}</p>
       </div>
     </div>

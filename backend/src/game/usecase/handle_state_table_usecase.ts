@@ -8,8 +8,9 @@ export class HandleStateTableUseCase {
 
     handle(table: Table){
         const state = table.getState()
-        if(state ==  "waitingForPlayers") eventEmitter.emit("aguardando jogadores", table)
-        if(state ==  "preflop") eventEmitter.emit("iniciar rodada pre flop", table)
+        if(state == "waitingForPlayers") eventEmitter.emit("aguardando jogadores", table)
+        if(state == "preflop") eventEmitter.emit("iniciar rodada pre flop", table)
+
     }
 }
 
