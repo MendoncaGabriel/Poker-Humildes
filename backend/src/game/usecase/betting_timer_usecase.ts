@@ -1,30 +1,35 @@
-import { table } from "console";
-import { Player } from "../entities/player";
 import { Table } from "../entities/table";
+import { Player } from "../entities/player";
+import { socketManager } from "../../server/server";
 import { eventEmitter } from "../event_bus/eventEmitter";
 
 export class BettingTimerUseCase {
     constructor(){
         eventEmitter.on("aguardando jogador apostar", this.handle.bind(this))
     }
+
     handle({player, table}: {player: Player, table: Table}){
-        let time = 0
-        let maxTime = 20
+        let time = 10
 
         let loop = setInterval(()=>{
-            time++
-            if(time == maxTime){
+            if(time == 0){
                 clearInterval(loop)
-                console.log("O tempo acabou!")
-                //verificar se o player apostou
-                //se n apostou dar fold automatico
-                table.selectTurnPlayer((player)=>{
-                    console.log(`a vez foi passada para outro jogador, name: ${player.name}, id: ${player.id}`)
+                
+                player.setState({
+                    action: "fold"
                 })
-                player.setAction()
-                //se apostou cancelar timer e passar a vez
+                console.log("O tempo acabou!")
+
+                socketManager.sendToUser(player.id, { msg: "o tempo acabou" });
+
+                table.selectTurnPlayer((playerTurn)=>{
+                    socketManager.sendToUser(playerTurn.id, { msg: "Sua vez" });
+                    console.log(`a vez foi passada para outro jogador, name: ${playerTurn.name}, id: ${playerTurn.id}`)
+                })
+                
             }else{
-                console.log(`Timer: ${time}`)
+                time--
+                socketManager.sendToUser(player.id, { msg: "timer", value: time });
             }
 
         }, 1000)

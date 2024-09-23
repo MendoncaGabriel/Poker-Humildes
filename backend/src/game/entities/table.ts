@@ -1,17 +1,17 @@
+import { socketManager } from "../../server/server";
 import { eventEmitter } from "../event_bus/eventEmitter";
 import { Card, DeckCard } from "./cards";
 import { Player } from "./player";
 
 type StateTable =
     | "waitingForPlayers" // Aguardando jogadores
-    | "preflop"      // Rodada de pré-flop
-    | "flop"         // Rodada do flop
-    | "turn"         // Rodada do turn
-    | "river"        // Rodada do river
-    | "showdown"     // Fase de revelação das cartas
-    | "end"          // Fim da partida
-    | "locked";      // Mesa bloqueada para novas entradas
-
+    | "preflop"           // Rodada de pré-flop
+    | "flop"              // Rodada do flop
+    | "turn"              // Rodada do turn
+    | "river"             // Rodada do river
+    | "showdown"          // Fase de revelação das cartas
+    | "end"               // Fim da partida
+    | "locked";           // Mesa bloqueada para novas entradas
 
 export class Table {
     private state: StateTable
@@ -44,9 +44,7 @@ export class Table {
 
     setState(state: StateTable) {
         this.state = state
-        eventEmitter.emit("novo estado", this)
-        //aqui sera um pivo de mudança de estados 
-        //toda vez que mudar seu estado deve emitir um sinal 
+        eventEmitter.emit("changed state table", this)
     }
 
     getState(): StateTable {
@@ -81,6 +79,15 @@ export class Table {
                 fistCard: card1,
                 secoundCard: card2
             });
+
+            socketManager.sendToUser(playerTable.id, {msg: "your cards", cards: {
+                card1, 
+                card2,
+                flop1: this.flop[0],
+                flop2: this.flop[1],
+                flop3: this.flop[2],
+            
+            },})
 
         });
 
@@ -135,9 +142,6 @@ export class Table {
             this.selectTurnPlayer(cb);
         }
     }
-    
-
-
 
     private setCardTable({ flop, turn, river }: { flop: Card[], turn: Card, river: Card }) {
         this.flop = flop

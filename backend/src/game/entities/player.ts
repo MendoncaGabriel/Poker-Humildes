@@ -5,21 +5,22 @@ interface Hand {
     secoundCard: Card;
 }
 
+type PlayerAction =
+    | 'bet'
+    | 'call'
+    | 'raise'
+    | 'fold'
+    | 'check'
+    | 'all_in'
+    | 're_raise'
+    | 'waiting'
+
 interface PlayerStates {
     isBigBlind?: unknown;
-    myTurn?: boolean;  // minha vez
-    sitting?: boolean; // sentado
-    toGiveUp?: boolean; // desistiu
-}
-
-enum PlayerAction {
-    BET = 'bet',
-    CALL = 'call',
-    RAISE = 'raise',
-    FOLD = 'fold',
-    CHECK = 'check',
-    ALL_IN = 'all_in',
-    RE_RAISE = 're_raise'
+    myTurn?: boolean;     // minha vez
+    sitting?: boolean;    // sentado
+    toGiveUp?: boolean;   // desistiu
+    action?: PlayerAction //actions
 }
 
 export class Player {
@@ -28,15 +29,15 @@ export class Player {
     public wallet: number;
     public hand?: Hand;
     public state: PlayerStates;
-    public actions: PlayerAction[]; 
+    public actions: PlayerAction;
 
-    constructor({id, name, wallet = 100, hand, state = {}, actions = []}: {
+    constructor({ id, name, wallet = 100, hand, state = {}, actions = "waiting" }: {
         id: string,
         name: string,
         wallet?: number,
         hand?: Hand,
         state?: PlayerStates,
-        actions?: PlayerAction[]
+        actions?: PlayerAction
     }) {
         this.id = id;
         this.name = name;
@@ -54,11 +55,11 @@ export class Player {
         this.wallet = value;
     }
 
-    setBet({value, description = ''}:{value: number, description?: string}): void {
-        if(this.wallet >= value){
+    setBet({ value, description = '' }: { value: number, description?: string }): void {
+        if (this.wallet >= value) {
             this.wallet -= value
             console.log(`🙋‍♂️💰 player ${description}: ${this.name}-${this.id} apostou: ${value}`)
-        }else{
+        } else {
             console.log(`🙋‍♂️💰 player ${description}: ${this.name}-${this.id} saldo insuficiente para aposta, carteira: ${this.wallet}`)
         }
     }
@@ -68,14 +69,6 @@ export class Player {
     }
 
     setState(state: PlayerStates): void {
-        this.state = { ...this.state, ...state }; 
-    }
-
-    setAction(action: PlayerAction): void {
-        this.actions.push(action); 
-    }
-
-    resetActions(): void {
-        this.actions = [];
+        this.state = { ...this.state, ...state };
     }
 }

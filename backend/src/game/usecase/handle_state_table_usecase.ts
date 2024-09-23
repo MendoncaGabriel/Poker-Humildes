@@ -3,7 +3,7 @@ import { Table } from "../entities/table";
 
 export class HandleStateTableUseCase {
     constructor(){
-        eventEmitter.on("novo estado", this.handle.bind(this))
+        eventEmitter.on("changed state table", this.handle.bind(this))
     }
 
     handle(table: Table){

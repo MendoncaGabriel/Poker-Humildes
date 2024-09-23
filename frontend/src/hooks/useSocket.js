@@ -8,12 +8,13 @@ const useSocket = (apiUrl) => {
   const [socket, setSocket] = useState(null);
   const [turn, setTurn] = useState(false);
   const [playerId, setPlayerId] = useState("");
+  const [timer, setTimer] = useState(0);
+  const [cards, setCards] = useState({});
 
   useEffect(() => {
     if (socket) {
-      setupSocketListeners(socket, (message) => {
-        console.log("Mensagem recebida:", message); // Adicionando log
-
+      const handleMessage = (message) => {
+        console.log("Mensagem recebida:", message);
         if (message.msg === 'exibir players da mesa') {
           setPlayers(message.chairs);
         } else if (message.msg === 'Mesa cheia' || message.msg === 'Mesa fechada') {
@@ -21,8 +22,17 @@ const useSocket = (apiUrl) => {
         } else if (message.msg === "Sua vez") {
           setStatusMessage("É a sua vez!");
           setTurn(true);
+        } else if (message.msg === "o tempo acabou") {
+          setTurn(false);
+          setStatusMessage("O tempo acabou");
+        } else if (message.msg === "timer") {
+          setTimer(message.value);
+        } else if (message.msg === "your cards") {
+          setCards(message.cards);
         }
-      }, () => {
+      };
+
+      setupSocketListeners(socket, handleMessage, () => {
         setIsConnected(false);
         setStatusMessage('Usuário desconectado');
         setPlayers([]);
@@ -47,21 +57,22 @@ const useSocket = (apiUrl) => {
           console.warn('Player ID não definido!');
         }
       });
-    }
 
-    return () => {
-      if (socket) {
+      return () => {
+        // Remova os listeners quando o componente for desmontado ou o socket mudar
         disconnectSocket(socket);
-      }
-    };
+      };
+    }
   }, [socket, playerId]);
 
   const connect = () => {
-    const newPlayerId = `${Date.now()}`;
-    setPlayerId(newPlayerId);
+    if (!socket) {
+      const newPlayerId = `${Date.now()}`;
+      setPlayerId(newPlayerId);
 
-    const newSocket = connectSocket(apiUrl);
-    setSocket(newSocket);
+      const newSocket = connectSocket(apiUrl);
+      setSocket(newSocket);
+    }
   };
 
   const disconnect = () => {
@@ -82,6 +93,8 @@ const useSocket = (apiUrl) => {
     disconnect,
     turn,
     playerId,
+    timer, 
+    cards
   };
 };
 
