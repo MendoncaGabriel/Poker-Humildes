@@ -7,69 +7,76 @@ const useSocket = (apiUrl) => {
   const [statusMessage, setStatusMessage] = useState('Usuário desconectado');
   const [socket, setSocket] = useState(null);
   const [turn, setTurn] = useState(false);
-  const [playerId, setPlayerId] = useState("");
+  const [playerId, setPlayerId] = useState('');
   const [timer, setTimer] = useState(0);
+  
   const [cards, setCards] = useState({});
 
   useEffect(() => {
-    if (socket) {
-      const handleMessage = (message) => {
-        console.log("Mensagem recebida:", message);
-        if (message.msg === 'exibir players da mesa') {
+    if (!socket) return;
+
+    const handleMessage = (message) => {
+      console.log('Mensagem recebida:', message);
+
+      switch (message.msg) {
+        case 'exibir players da mesa':
           setPlayers(message.chairs);
-        } else if (message.msg === 'Mesa cheia' || message.msg === 'Mesa fechada') {
+          break;
+        case 'Mesa cheia':
+        case 'Mesa fechada':
           alert(message.msg);
-        } else if (message.msg === "Sua vez") {
-          setStatusMessage("É a sua vez!");
+          break;
+        case 'Sua vez':
           setTurn(true);
-        } else if (message.msg === "o tempo acabou") {
+          setStatusMessage('É a sua vez!');
+          break;
+        case 'o tempo acabou':
           setTurn(false);
-          setStatusMessage("O tempo acabou");
-        } else if (message.msg === "timer") {
+          setStatusMessage('O tempo acabou');
+          break;
+        case 'timer':
           setTimer(message.value);
-        } else if (message.msg === "your cards") {
+          break;
+        case 'your cards':
           setCards(message.cards);
-        }
-      };
+          break;
+        default:
+          console.warn('Mensagem desconhecida recebida:', message);
+      }
+    };
 
-      setupSocketListeners(socket, handleMessage, () => {
-        setIsConnected(false);
-        setStatusMessage('Usuário desconectado');
-        setPlayers([]);
-      });
+    setupSocketListeners(socket, handleMessage, () => {
+      setIsConnected(false);
+      setStatusMessage('Usuário desconectado');
+      setPlayers([]);
+    });
 
-      socket.on('connect', () => {
-        setIsConnected(true);
-        setStatusMessage('Usuário Conectado!');
+    socket.on('connect', () => {
+      setIsConnected(true);
+      setStatusMessage('Usuário conectado!');
 
-        if (playerId) {
-          sendMessage(socket, {
-            msg: "conectar player a mesa",
-            player: {
-              id: playerId,
-              name: "jhoe due"
-            },
-            table: {
-              id: "table-1"
-            }
-          });
-        } else {
-          console.warn('Player ID não definido!');
-        }
-      });
+      if (playerId) {
+        sendMessage(socket, {
+          msg: 'conectar player a mesa',
+          player: { id: playerId, name: 'jhoe due' },
+          table: { id: 'table-1' }
+        });
+      } else {
+        console.warn('Player ID não definido!');
+      }
+    });
 
-      return () => {
-        // Remova os listeners quando o componente for desmontado ou o socket mudar
-        disconnectSocket(socket);
-      };
-    }
+    return () => {
+      disconnectSocket(socket);
+      setIsConnected(false);
+      setSocket(null);
+    };
   }, [socket, playerId]);
 
   const connect = () => {
     if (!socket) {
       const newPlayerId = `${Date.now()}`;
       setPlayerId(newPlayerId);
-
       const newSocket = connectSocket(apiUrl);
       setSocket(newSocket);
     }
