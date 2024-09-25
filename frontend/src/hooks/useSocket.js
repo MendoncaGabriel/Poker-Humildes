@@ -1,16 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useContext, useState } from 'react';
 import { connectSocket, disconnectSocket, sendMessage, setupSocketListeners } from '../utils/socket';
+import { GlobalContext } from '../providers/GlobalProvider';
 
 const useSocket = (apiUrl) => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [players, setPlayers] = useState([]);
-  const [statusMessage, setStatusMessage] = useState('Usuário desconectado');
-  const [socket, setSocket] = useState(null);
-  const [turn, setTurn] = useState(false);
-  const [playerId, setPlayerId] = useState('');
-  const [timer, setTimer] = useState(0);
-  
-  const [cards, setCards] = useState({});
+  const { global, setGlobal } = useContext(GlobalContext);
+
+  const [socket, setSocket] = useState(null)
 
   useEffect(() => {
     if (!socket) return;
@@ -20,25 +15,40 @@ const useSocket = (apiUrl) => {
 
       switch (message.msg) {
         case 'exibir players da mesa':
-          setPlayers(message.chairs);
+          setGlobal(prev => ({
+            ...prev,
+            chairs: message.chairs
+          }))
           break;
         case 'Mesa cheia':
         case 'Mesa fechada':
           alert(message.msg);
           break;
         case 'Sua vez':
-          setTurn(true);
-          setStatusMessage('É a sua vez!');
+          setGlobal(prev => ({
+            ...prev,
+            turnPlayer: true,
+            statusMessage: "É a sua vez!"
+          }))
           break;
         case 'o tempo acabou':
-          setTurn(false);
-          setStatusMessage('O tempo acabou');
+          setGlobal(prev => ({
+            ...prev,
+            turnPlayer: false,
+            statusMessage: "O tempo acabou"
+          }))
           break;
         case 'timer':
-          setTimer(message.value);
+          setGlobal(prev => ({
+            ...prev,
+            timer: message.value
+          }))
           break;
         case 'your cards':
-          setCards(message.cards);
+          setGlobal(prev => ({
+            ...prev,
+            cards: message.value,
+          }))
           break;
         default:
           console.warn('Mensagem desconhecida recebida:', message);
@@ -46,19 +56,26 @@ const useSocket = (apiUrl) => {
     };
 
     setupSocketListeners(socket, handleMessage, () => {
-      setIsConnected(false);
-      setStatusMessage('Usuário desconectado');
-      setPlayers([]);
+      setGlobal(prev => ({
+        ...prev,
+        isConnected: true
+      }));
+
     });
 
     socket.on('connect', () => {
-      setIsConnected(true);
-      setStatusMessage('Usuário conectado!');
+      setGlobal(prev => ({
+        ...prev,
+        isConnected: true,
+        setStatusMessage: "Usuário conectado!"
+      }));
 
-      if (playerId) {
+      if (global.principalPlayer.playerId) {
+        const newPlayerId = `${Date.now()}`;
+
         sendMessage(socket, {
           msg: 'conectar player a mesa',
-          player: { id: playerId, name: 'jhoe due' },
+          player: { id: newPlayerId, name: global.principalPlayer.name },
           table: { id: 'table-1' }
         });
       } else {
@@ -68,15 +85,12 @@ const useSocket = (apiUrl) => {
 
     return () => {
       disconnectSocket(socket);
-      setIsConnected(false);
       setSocket(null);
     };
-  }, [socket, playerId]);
+  }, [global.principalPlayer.name, global.principalPlayer.playerId, setGlobal, socket]);
 
   const connect = () => {
     if (!socket) {
-      const newPlayerId = `${Date.now()}`;
-      setPlayerId(newPlayerId);
       const newSocket = connectSocket(apiUrl);
       setSocket(newSocket);
     }
@@ -87,21 +101,17 @@ const useSocket = (apiUrl) => {
       disconnectSocket(socket);
       setSocket(null);
     }
-    setIsConnected(false);
-    setStatusMessage('Usuário desconectado');
-    setPlayers([]);
+    setGlobal(prev => ({
+      ...prev,
+      isConnected: false,
+      setStatusMessage: "Usuário desconectado",
+      players: []
+    })); 
   };
 
   return {
-    isConnected,
-    players,
-    statusMessage,
     connect,
     disconnect,
-    turn,
-    playerId,
-    timer, 
-    cards
   };
 };
 

@@ -6,8 +6,8 @@ const PlayerTable = ({ player, positions }) => (
             top: positions.top,
             left: positions.left,
             transform: positions.transform,
-            width: '100px', // Define uma largura fixa para o container do jogador
-            height: '80px', // Define uma altura fixa para o container do jogador
+            width: '100px', 
+            height: '80px', 
         }}
     >
         <img
@@ -15,9 +15,9 @@ const PlayerTable = ({ player, positions }) => (
             alt="ícone player"
             className="aspect-square rounded-full w-20 bg-gray-300 border-4 border-gray-800"
             style={{
-                width: '70px', // Define a largura fixa para a imagem
-                height: '70px', // Define a altura fixa para a imagem
-                objectFit: 'cover', // Garante que a imagem se ajuste corretamente
+                width: '70px',
+                height: '70px', 
+                objectFit: 'cover', 
             }}
         />
         <p className="text-gray-100 font-bold text-center">{player.name}</p>

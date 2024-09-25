@@ -15,7 +15,7 @@ const Chairs = ({ players }) => {
 
   return (
     <div className="relative w-full h-full">
-      {players.slice(0, 10).map((player, index) => (
+      {players?.slice(0, 10).map((player, index) => (
          
         <PlayerTable player={player} positions={positions[index]} key={index}/>
       ))}

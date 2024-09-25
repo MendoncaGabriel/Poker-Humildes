@@ -1,8 +1,13 @@
-const ActionsPlayer = ({ turn }) => {
+import { useContext } from "react";
+import { GlobalContext } from "../providers/GlobalProvider";
+
+const ActionsPlayer = () => {
+  const { global } = useContext(GlobalContext);
+
   return (
     <>
-      {turn && (
-        <div className="mt-6 flex justify-center">
+      {global.turnPlayer && (
+        <div className="mt-6 flex justify-center border">
 
           <h2>AÇÕES</h2>
           <div className="border-2 flex p-2 w-full justify-between">
