@@ -42,6 +42,13 @@ export class Table {
         this.deckCard = new DeckCard()
     }
 
+    setPot(value: number){
+        this.pot = value
+    }
+    getPot(){
+        return this.pot
+    }
+
     setState(state: StateTable) {
         this.state = state
         eventEmitter.emit("changed state table", this)
@@ -81,13 +88,9 @@ export class Table {
             });
 
             socketManager.sendToUser(playerTable.id, {msg: "your cards", cards: {
-                card1, 
-                card2,
-                flop1: this.flop[0],
-                flop2: this.flop[1],
-                flop3: this.flop[2],
-            
-            },})
+                fistCard: card1,
+                secoundCard: card2
+            }})
 
         });
 
@@ -109,9 +112,11 @@ export class Table {
 
         if (smallBlindPlayer) {
             smallBlindPlayer.setBet({ value: smallBlindAmount, description: "small blind" });
+            this.setPot(this.getPot() + smallBlindAmount)
         }
         if (bigBlindPlayer) {
             bigBlindPlayer.setBet({ value: bigBlindAmount, description: "big blind" });
+            this.setPot(this.getPot() + bigBlindAmount)
         }
     }
 

@@ -14,10 +14,10 @@ const Table = () => {
       <div className="border-2 border-gray-400  relative  rounded-full w-[95%] h-[90%] flex items-center justify-center shadow-2xl">
         <CardsTable cardsTable={global.cardsTable} />
         <Pot value={global.pot} />
-        <Chairs players={global.players} />
+        <Chairs players={global.chairs} />
       </div>
 
-      <HandCardPlayer cards={global.handCarPlayer} />
+      <HandCardPlayer />
     </div>
   );
 };

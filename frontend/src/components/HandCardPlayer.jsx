@@ -1,22 +1,37 @@
+import { useContext, useEffect, useState } from "react";
 import Card from "./Card"
+import { GlobalContext } from "../providers/GlobalProvider";
 
-const HandCardPlayer = ({cards}) => (
+const HandCardPlayer = () => {
+  const { global } = useContext(GlobalContext);
+  const [cards, setCards] = useState({})
+
+
+  useEffect(() => {
+    if (global.handCardPlayer) {
+      setCards(global.handCardPlayer)
+    }
+  }, [global.handCardPlayer]);
+
+  return (
     <div className="flex space-x-2 absolute -bottom-10 transform -translate-y-1/-2">
-    {cards?.length > 0 && (
-      <>
-        <Card
-          value={cards[0]?.value || ''}
-          naipe={cards[0]?.naipe || ''}
-          className="bg-gray-700 p-1 rounded-md shadow"
-        />
-        <Card
-          value={cards[1]?.value || ''}
-          naipe={cards[1]?.naipe || ''}
-          className="bg-gray-700 p-1 rounded-md shadow"
-        />
-      </>
-    )}
-  </div>
-)
+      {cards.fistCard && cards.secoundCard && (
+        <>
+
+          <Card
+            value={cards.fistCard?.value || ''}
+            naipe={cards.fistCard?.naipe || ''}
+            className="bg-gray-700 p-1 rounded-md shadow"
+          />
+          <Card
+            value={cards.secoundCard.value || ''}
+            naipe={cards.secoundCard.naipe || ''}
+            className="bg-gray-700 p-1 rounded-md shadow"
+          />
+        </>
+      )}
+    </div>
+  )
+}
 
 export default HandCardPlayer

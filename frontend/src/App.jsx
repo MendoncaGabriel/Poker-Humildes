@@ -12,8 +12,6 @@ const App = () => {
   const { connect, disconnect } = useSocket(apiUrl);
   const { global } = useContext(GlobalContext);
 
-
-
   const handleButtonClick = () => {
     if (global.isConnected) {
       disconnect();
@@ -21,7 +19,6 @@ const App = () => {
       connect();
     }
   };
-
 
   return (
     <div className="bg-gray-900  flex  items-center justify-center py-2 h-screen  space-x-5">

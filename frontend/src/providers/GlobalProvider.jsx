@@ -10,14 +10,14 @@ export const GlobalProvider = ({ children }) => {
     { value: 6, naipe: "Spades" }
   ]
 
-  const cardsTable = {
-    flop: [
-      { value: 10, naipe: "Hearts" },
-      { value: 9, naipe: "Spades" },
-      { value: 8, naipe: "Diamonds" }],
-    turn: { value: 7, naipe: "Clubs" },
-    river: { value: 6, naipe: "Spades" }
-  }
+  // const cardsTable = {
+  //   flop: [
+  //     { value: 10, naipe: "Hearts" },
+  //     { value: 9, naipe: "Spades" },
+  //     { value: 8, naipe: "Diamonds" }],
+  //   turn: { value: 7, naipe: "Clubs" },
+  //   river: { value: 6, naipe: "Spades" }
+  // }
 
   const principalPlayer = {
     id: "ds1ds5d1sd16",
@@ -25,17 +25,7 @@ export const GlobalProvider = ({ children }) => {
     wallet: 1501
   }
 
-  const players = [
-    { name: "name player" },
-    { name: "name player" },
-    { name: "name player" },
-    { name: "name player" },
-    { name: "name player" },
-    { name: "name player" },
-    { name: "name player" },
-    { name: "name player" },
-    { name: "name player" }
-  ]
+
   const pot = 0
 
   useEffect(() => {
@@ -43,10 +33,11 @@ export const GlobalProvider = ({ children }) => {
       ...prev,
       handCarPlayer,
       pot,
-      players,
-      cardsTable,
+      chairs: [],
+      cardsTable: {},
+      handCardPlayer: {},
       turnPlayer: true,
-      isConnected: true,
+      isConnected: false,
       principalPlayer,
       timer: 20,
       statusMessage: "Usuário desconectado"
