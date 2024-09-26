@@ -9,10 +9,10 @@ import { BettingTimerUseCase } from '../usecase/betting_timer_usecase';
 
 export const eventEmitter = new EventEmitter();
 
-const playerConnectUseCase = new PlayerConnectUseCase()
-const playerDisconnectedUsecase = new PlayerDisconnectedUsecase()
-const startGameUseCase = new StartGameUseCase()
-const showPlayerInTableUseCase = new ShowPlayerInTableUseCase()
 const preFlopUseCase = new PreFlopUseCase()
-const handleStateTableUseCase = new HandleStateTableUseCase()
+const startGameUseCase = new StartGameUseCase()
 const bettingTimerUseCase = new BettingTimerUseCase()
+const playerConnectUseCase = new PlayerConnectUseCase()
+const handleStateTableUseCase = new HandleStateTableUseCase()
+const showPlayerInTableUseCase = new ShowPlayerInTableUseCase()
+const playerDisconnectedUsecase = new PlayerDisconnectedUsecase()
